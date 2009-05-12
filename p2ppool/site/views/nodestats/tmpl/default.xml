@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+  <layout title="Node Statistics">
+    <message>
+    </message>
+  </layout>
+  <state>
+    <url>
+      <param name="pool_id" type="sql" label="Select a pool"
+        query="SELECT pool_id, pool FROM p2ppools"
+        key_field = "pool_id" value_field="pool" />
+      <param name="task" type="hidden" default="map" />
+    </url>
+  </state>
+</metadata>

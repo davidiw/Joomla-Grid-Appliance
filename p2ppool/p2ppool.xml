@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/component-install.dtd">
+<install type="component" version="1.5.0">
+  <name>P2P Pool</name>
+  <creationDate>2009 05 12</creationDate>
+  <author>David Wolinsky</author>
+  <authorEmail>davidiw@ufl.edu</authorEmail>
+  <authorUrl>http://www.grid-appliance.org</authorUrl>
+  <copyright>2009</copyright>
+  <license>GPLv2</license>
+  <version>.01</version>
+  <description>Provides for status monitoring and management of P2P Pools.</description>
+
+  <files folder="site">
+    <filename>private/.htaccess</filename>
+    <filename>index.html</filename>
+    <filename>scripts/index.html</filename>
+    <filename>scripts/sql/index.html</filename>
+    <filename>scripts/sql/system_stats.sql</filename>
+    <filename>scripts/sql/pool.sql</filename>
+    <filename>scripts/sql/count.sql</filename>
+    <filename>scripts/sql/stats.sql</filename>
+    <filename>scripts/python/JoomlaDB.py</filename>
+    <filename>scripts/python/index.html</filename>
+    <filename>scripts/python/Remoter.py</filename>
+    <filename>scripts/python/JoomlaInterface.py</filename>
+    <filename>scripts/python/pybru.py</filename>
+    <filename>scripts/python/JoomlaCrawl.py</filename>
+    <filename>scripts/python/JoomlaBasicNode.py</filename>
+    <filename>scripts/python/crawl.py</filename>
+    <filename>scripts/python/JoomlaPrepare.py</filename>
+    <filename>scripts/.htaccess</filename>
+    <filename>p2ppool.php</filename>
+    <filename>data/index.html</filename>
+    <filename>data/mkbundlenode/cronolog</filename>
+    <filename>data/mkbundlenode/start_node.sh</filename>
+    <filename>data/mkbundlenode/libMonoPosixHelper.so</filename>
+    <filename>data/mkbundlenode/mono/config</filename>
+    <filename>data/mkbundlenode/mono/2.0/machine.config</filename>
+    <filename>data/mkbundlenode/clean.sh</filename>
+    <filename>data/mkbundlenode/check.sh</filename>
+    <filename>data/mononode/cronolog</filename>
+    <filename>data/mononode/start_node.sh</filename>
+    <filename>data/mononode/clean.sh</filename>
+    <filename>data/mononode/check.sh</filename>
+    <filename>views/systemstats/index.html</filename>
+    <filename>views/systemstats/tmpl/index.html</filename>
+    <filename>views/systemstats/tmpl/default.xml</filename>
+    <filename>views/systemstats/tmpl/default.php</filename>
+    <filename>views/systemstats/view.php</filename>
+    <filename>views/systemstats/metadata.xml</filename>
+    <filename>views/index.html</filename>
+    <filename>views/status/index.html</filename>
+    <filename>views/status/tmpl/index.html</filename>
+    <filename>views/status/tmpl/default.php</filename>
+    <filename>views/status/view.php</filename>
+    <filename>views/status/metadata.xml</filename>
+    <filename>views/map/index.html</filename>
+    <filename>views/map/tmpl/index.html</filename>
+    <filename>views/map/tmpl/default.xml</filename>
+    <filename>views/map/tmpl/default.php</filename>
+    <filename>views/map/view.php</filename>
+    <filename>views/map/metadata.xml</filename>
+    <filename>views/edit/index.html</filename>
+    <filename>views/edit/tmpl/index.html</filename>
+    <filename>views/edit/tmpl/default.php</filename>
+    <filename>views/edit/view.php</filename>
+    <filename>views/edit/metadata.xml</filename>
+    <filename>views/nodestats/index.html</filename>
+    <filename>views/nodestats/tmpl/index.html</filename>
+    <filename>views/nodestats/tmpl/default.xml</filename>
+    <filename>views/nodestats/tmpl/default.php</filename>
+    <filename>views/nodestats/view.php</filename>
+    <filename>views/nodestats/metadata.xml</filename>
+    <filename>models/index.html</filename>
+    <filename>models/system.php</filename>
+    <filename>models/pool.php</filename>
+    <filename>controller.php</filename>
+  </files>
+
+  <install>
+    <sql>
+      <file charset="utf8" driver="mysql">install.sql</file>
+    </sql>
+  </install>
+
+  <uninstall>
+    <sql>
+      <file charset="utf8" driver="mysql">uninstall.sql</file>
+    </sql>
+  </uninstall>  
+
+  <administration>
+    <menu>P2PPool</menu>
+    <files folder="admin">
+      <filename>install.sql</filename>
+      <filename>uninstall.sql</filename>
+      <filename>tables/index.html</filename>
+      <filename>tables/p2ppools.php</filename>
+      <filename>tables/p2ppool_tasks.php</filename>
+    </files>    
+  </administration>
+</install>
