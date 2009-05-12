@@ -13,7 +13,7 @@ def main(task, pool, fork = False):
     if os.fork() == 0:
       app = "python"
       pyapp = sys.path[0] + os.sep + "JoomlaInterface.py"
-      args = "%s %s %s %s %s %s %s" % (app, pyapp, task, pool)
+      args = "%s %s %s %s" % (app, pyapp, task, pool)
       os.execvp(app, args.split(' '))
       pid = os.getpid()
     else:

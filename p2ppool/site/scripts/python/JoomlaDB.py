@@ -15,7 +15,7 @@ class JoomlaDB:
     self.host = self.find_val(config, "host")
 
   def find_val(self, config, value):
-    line_re =  re.compile("\$" + value + "[^;]*")
+    line_re =  re.compile("\$" + value + "\s*=[^;]*")
     value_re = re.compile("['][^']*[']")
     no_quotes = re.compile("[^']+")
 

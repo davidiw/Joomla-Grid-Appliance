@@ -151,6 +151,7 @@ class P2PPoolModelPool extends JModel {
         $db->Execute($query);
       }
     }
+    return true;
   }
 
   function setDefaultPool() {

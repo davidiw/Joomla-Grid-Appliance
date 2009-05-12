@@ -166,7 +166,7 @@ class Remoter:
       tobreak = True
       try: 
         # This prints something if all is good ending this install attempt
-        ssh_cmd(base_ssh + self.install_path + "/node/check.sh", False)
+        ssh_cmd("%s bash %s/node/check.sh" %s (base_ssh, self.install_path), False)
       except:
         tobreak = False
       if tobreak:
@@ -177,17 +177,18 @@ class Remoter:
 
     try:
       # this helps us leave early in case the node is unaccessible
-      ssh_cmd(base_ssh + self.install_path + "/node/clean.sh")
-      ssh_cmd(base_ssh + "rm -rf " + self.install_path + "/node*", False)
-      ssh_cmd(base_ssh + "mkdir -p " + self.install_path)
-      os.system(self.base_scp_cmd + " " + self.path_to_files + " " + self.username + \
-          "@" + node + ":" + self.install_path + "/node.tgz &> /dev/null")
-      ssh_cmd(base_ssh + "tar -zxf " + self.install_path + "/node.tgz -C " + self.install_path)
-      ssh_cmd(base_ssh + self.install_path +  "/node/clean.sh")
+      ssh_cmd("%s bash %s /node/clean.sh" % (base_ssh, self.install_path))
+      ssh_cmd("%s rm -rf %s/node/*" % (base_ssh, self.install_path), False)
+      ssh_cmd("%s mkdir -p %S" % (base_ssh, self.install_path))
+      os.system("%s %s %s@%s:%s/node.tgz &> /dev/null" % (self.base_scp_cmd, \
+          self.path_to_files, self.username, node, self.install_path))
+      ssh_cmd("%s tar -zxf %s/node.tgz -C %s" % (base_ssh, self.install_path, \
+          self.install_path))
+      ssh_cmd("%s bash %s/node/clean.sh" % (base_ssh, self.install_path))
 
   # this won't end unless we force it to!  It should never take more than 20
   # seconds for this to run... or something bad happened.
-      cmd = base_ssh + self.install_path + "/node/start_node.sh &> /dev/null"
+      cmd = "%s bash %s/node/start_node.sh &> /dev/null" % (base_ssh, self.install_path)
       pid = os.spawnvp(os.P_NOWAIT, 'ssh', cmd.split(' '))
       time.sleep(20)
       if os.waitpid(pid, os.P_NOWAIT) == (0, 0):
@@ -206,8 +207,8 @@ class Remoter:
     base_ssh = self.base_ssh_cmd + node + " "
     try:
       # this helps us leave early in case the node is unaccessible
-      ssh_cmd(base_ssh + self.install_path + "/node/clean.sh")
-      ssh_cmd(base_ssh + "rm -rf " + self.install_path + "/node*")
+      ssh_cmd("%s bash %s/node/clean.sh" % (base_ssh + self.install_path))
+      ssh_cmd("%s rm -rf %s/node*" % (base_ssh, self.install_path))
       if self.update_callback:
         self.update_callback(node, 0)
       else:
@@ -222,13 +223,14 @@ class Remoter:
 
   def get_logs(self, node):
     os.system("mkdir logs/" + node)
-    cmd = self.base_scp_cmd + self.username + "@" + node + ":" + self.install_path + \
-        "/node/node.log.* " + self.data_path + "logs/" + node + "/. &> /dev/null"
+    cmd = "%s %s@%s:%s/node/node.log.* %s/logs/%s/. &> /dev/null" % \
+        (self.base_scp_cmd, self.username, node,  self.install_path, \
+        self.data_path, node)
     os.system(cmd)
     return
 
   def cmd(self, node):
-    cmd = self.base_ssh_cmd + node + " " + self.args + " 2> /dev/null 1> cmd/" + node
+    cmd = "%s%s %s 2> /dev/null 1> cmd/%s" % (self.base_ssh_cmd, node, self.args, node)
     os.system(cmd)
     return
     try:
