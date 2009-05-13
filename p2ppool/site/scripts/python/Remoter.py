@@ -45,8 +45,11 @@ def main():
     path_to_files = None
     if "--path_to_files" in o_d:
       path_to_files = o_d["--path_to_files"]
-    plab = Remoter(action, nodes, username=username, \
-      path_to_files=path_to_files, ssh_key=ssh_key)
+    install_path = ""
+    if "--install_path" in o_d:
+      install_path = o_d["--install_path"]
+    plab = Remoter(action, nodes, username=username, path_to_files=path_to_files, \
+        ssh_key=ssh_key, install_path=install_path)
   except:
     print_usage()
 
@@ -178,12 +181,14 @@ class Remoter:
     try:
       # this helps us leave early in case the node is unaccessible
       ssh_cmd("%s bash %s /node/clean.sh" % (base_ssh, self.install_path))
-      ssh_cmd("%s rm -rf %s/node/*" % (base_ssh, self.install_path), False)
-      ssh_cmd("%s mkdir -p %S" % (base_ssh, self.install_path))
-      os.system("%s %s %s@%s:%s/node.tgz &> /dev/null" % (self.base_scp_cmd, \
-          self.path_to_files, self.username, node, self.install_path))
-      ssh_cmd("%s tar -zxf %s/node.tgz -C %s" % (base_ssh, self.install_path, \
-          self.install_path))
+      ssh_cmd("%s rm -rf %s/node*" % (base_ssh, self.install_path), False)
+      ssh_cmd("%s mkdir -p %s" % (base_ssh, self.install_path))
+      cmd = "%s %s %s@%s:%s/node.tgz &> /dev/null" % (self.base_scp_cmd, \
+          self.path_to_files, self.username, node, self.install_path)
+      print cmd
+      os.system(cmd)
+      ssh_cmd("%s tar --overwrite --overwrite-dir -zxf %s/node.tgz -C %s" % \
+          (base_ssh, self.install_path, self.install_path))
       ssh_cmd("%s bash %s/node/clean.sh" % (base_ssh, self.install_path))
 
   # this won't end unless we force it to!  It should never take more than 20
@@ -197,7 +202,7 @@ class Remoter:
       if self.update_callback:
         self.update_callback(node, 1)
     except:
-#      traceback.print_exc(file=sys.stdout)
+      traceback.print_exc(file=sys.stdout)
       print node + " failed!"
       if self.update_callback:
         self.update_callback(node, 0)
@@ -217,7 +222,7 @@ class Remoter:
       if self.update_callback:
         self.update_callback(node, 1)
       else:
-#        traceback.print_exc(file=sys.stdout)
+        traceback.print_exc(file=sys.stdout)
         print node + " failed!"
       return
 
@@ -244,7 +249,7 @@ class Remoter:
 def ssh_cmd(cmd, redirect=True):
   if redirect:
     cmd += " &> /dev/null"
-    
+  print cmd  
   p = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   os.waitpid(p.pid, 0)
   err = p.stderr.read()

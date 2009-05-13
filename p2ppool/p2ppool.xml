@@ -31,7 +31,6 @@
     <filename>scripts/python/JoomlaPrepare.py</filename>
     <filename>scripts/javascript/index.html</filename>
     <filename>scripts/javascript/sorttable.js</filename>
-    <filename>scripts/.htaccess</filename>
     <filename>p2ppool.php</filename>
     <filename>data/index.html</filename>
     <filename>data/mkbundlenode/cronolog</filename>
@@ -74,6 +73,12 @@
     <filename>views/nodestats/tmpl/default.php</filename>
     <filename>views/nodestats/view.php</filename>
     <filename>views/nodestats/metadata.xml</filename>
+    <filename>views/localstate/index.html</filename>
+    <filename>views/localstate/tmpl/index.html</filename>
+    <filename>views/localstate/tmpl/default.xml</filename>
+    <filename>views/localstate/tmpl/default.php</filename>
+    <filename>views/localstate/view.php</filename>
+    <filename>views/localstate/metadata.xml</filename>
     <filename>models/index.html</filename>
     <filename>models/system.php</filename>
     <filename>models/pool.php</filename>

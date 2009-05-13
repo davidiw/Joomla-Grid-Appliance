@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+  <view title="Local State.">
+    Display a summary of the local nodes state including running tasks.
+  </view>
+</metadata>

@@ -1,5 +1,10 @@
 #!/bin/bash
-path=`dirname $0`
+chmod +x $0
+path=`which $0`
+echo $path
+path=`dirname $path`
+chmod +x $path/basicnode
+chmod +x $path/cronolog
 
 export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$path
 cd $path

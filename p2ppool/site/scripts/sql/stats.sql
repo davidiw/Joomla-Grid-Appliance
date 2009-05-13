@@ -3,7 +3,7 @@ CREATE TABLE `#pool__stats` (
   `brunet_address` varchar(32) NOT NULL,
   `neighbor` varchar(32) default NULL,
   `retries` smallint(2) default NULL,
-  `consistency` tinyint(1) default NULL,
+  `consistency` decimal(2,1) default NULL,
   `ip` varchar(15) default NULL,
   `type` varchar(10) default NULL,
   `virtual_ip` varchar(15) default NULL,

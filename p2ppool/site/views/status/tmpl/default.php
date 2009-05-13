@@ -35,7 +35,12 @@ function check() {
       break;
     }
   }
-  form.submit();
+
+  if(action.value == "files") {
+    window.location = "/components/com_p2ppool/data/" + pool.id;
+  } else {
+    form.submit();
+  }
 }
 
 function selectPool() {
@@ -47,7 +52,7 @@ function selectPool() {
     <tr><td style="horizontal-align:center">Pools</td></tr>
 <?php foreach($this->pools as $pool) { ?>
     <tr>
-      <td><input type="radio" name="pool" value="<?php echo $pool[0]; ?>" /></td>
+    <td><input type="radio" name="pool" value="<?php echo $pool[0]; ?>" id="<?php echo $pool[1]; ?>" /></td>
       <td><?php echo $pool[1]; ?></td>
       <td><?php echo $pool[2]; ?></td>
     <tr>
@@ -66,6 +71,14 @@ function selectPool() {
     <tr>
       <td><input type="radio" name="action" value="map" /></td>
       <td>Map</td>
+    <tr>
+    <tr>
+      <td><input type="radio" name="action" value="files" /></td>
+      <td>View data directory</td>
+    <tr>
+    <tr>
+      <td><input type="radio" name="action" value="localstate" /></td>
+      <td>Local state</td>
     <tr>
 <?php if($this->management) { ?>
     <tr><td style="horizontal-align:center">Management Tasks</td></tr>

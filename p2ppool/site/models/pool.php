@@ -388,15 +388,15 @@ class P2PPoolModelPool extends JModel {
   }
 
   // Information regarding all pools
-  function getPoolsState() {
-    $db = & JFactory::getDBO();
-    $query = "SELECT pool, running, uninstall FROM p2ppools ORDER BY pool";
-    $db->setQuery($query);
-    $pools = $db->loadRowList();
+  function getPoolState() {
+    if(empty($this->pool)) {
+      $this->loadDefaultPool();
+    }
 
-    $query = "SELECT pool, task, pid, start_time FROM p2ppool_taskman ORDER BY pool";
-    $status = $db->loadRowList();
-    return array($pools, $status);
+    $db = & JFactory::getDBO();
+    $query = "SELECT task, pid, start_time FROM p2ppool_taskman WHERE pool = \"".$this->pool->pool."\"";
+    $db->setQuery($query);
+    return $db->loadAssocList();
   }
 }
 ?>

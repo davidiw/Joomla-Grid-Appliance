@@ -1,6 +1,7 @@
 <?php // no direct access
 defined('_JEXEC') or die('Restricted access')
 ?>
+
 <script type="text/javascript">
 function addLoadEvent(func) {
   var oldonload = window.onload;
@@ -9,18 +10,19 @@ function addLoadEvent(func) {
   } else {
     window.onload = function() { oldonload(); func(); }
   }
+  alert(oldonload());
 }
 
 function addUnloadEvent(func) {
-  var oldonload = window.onload;
-  if(typeof window.onload != 'function') {
-    window.onload = func;
+  var oldfunc = window.unload;
+  if(typeof window.unload != 'function') {
+    window.unload = func;
   } else {
-    window.onload = function() { oldonload(); func(); }
+    window.unload = function() { oldfunc(); func(); }
   }
 }
 
-function onLoad() {
+function mapLoad() {
   if (GBrowserIsCompatible()) {
     var map = new GMap2(document.getElementById("map"));
     map.setCenter(new GLatLng(0, 0), 1);
@@ -28,17 +30,13 @@ function onLoad() {
     map.addControl(new GOverviewMapControl());
 
 <?php foreach($this->coordinates as $coord) { ?>
-      map.addOverlay(new GMarker(new GLatLng(<?php echo $coord; ?>)));;
+    map.addOverlay(new GMarker(new GLatLng(<?php echo $coord; ?>)));;
 <?php } ?>
   }
 }
 
-function onUnload() {
-  GUnload();
-}
-
-addLoadEvent(onLoad);
-addUnloadEvent(onUnload);
+addLoadEvent(mapLoad);
+addUnloadEvent(GUnload);
 </script>
 
 <p>
