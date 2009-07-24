@@ -59,7 +59,7 @@ def print_usage():
   print usage
   os._exit(0)
 
-def logger_std_out(test):
+def logger_std_out(text):
   print(text)
 
 class Remoter:
@@ -205,7 +205,7 @@ class Remoter:
       if self.update_callback:
         self.update_callback(node, 1)
     except:
-#      traceback.print_exc(file=sys.stdout)
+      traceback.print_exc(file=sys.stdout)
       self.logger(node + " failed!")
       if self.update_callback:
         self.update_callback(node, 0)
@@ -215,13 +215,14 @@ class Remoter:
     base_ssh = self.base_ssh_cmd + node + " "
     try:
       # this helps us leave early in case the node is unaccessible
-      ssh_cmd("%s bash %s/node/clean.sh" % (base_ssh + self.install_path))
+      ssh_cmd("%s bash %s/node/clean.sh" % (base_ssh, self.install_path))
       ssh_cmd("%s rm -rf %s/node*" % (base_ssh, self.install_path))
       if self.update_callback:
         self.update_callback(node, 0)
       else:
         self.logger(node + " done!")
     except:
+      #traceback.print_exc(file=sys.stdout)
       if self.update_callback:
         self.update_callback(node, 1)
       else:
@@ -248,7 +249,7 @@ class Remoter:
     
 # This runs the ssh command monitoring it for any possible failures and raises
 # an the KeyboardInterrupt if there is one.
-def ssh_cmd(cmd, redirect=True):
+def ssh_cmd(cmd, redirect=True, logger = logger_std_out):
   if redirect:
     cmd += " &> /dev/null"
   p = subprocess.Popen(cmd.split(' '), stdin=open("/dev/null"), \
@@ -257,10 +258,20 @@ def ssh_cmd(cmd, redirect=True):
   err = p.stderr.read()
   out = p.stdout.read()
   good_err = re.compile("Warning: Permanently added")
-  if (good_err.search(err) == None and err != '') or out != '':
-#    self.logger(cmd)
-#    self.logger("Err: " + err)
-#    self.logger("Out: " + out)
+  if good_err.search(err) != None:
+    nerr = ''
+    for line in err.split('\n'):
+      if good_err.search(line) != None:
+        continue
+      nerr += line + "\n"
+    err = nerr
+  err = err.strip()
+  out = out.strip()
+
+  if err != '' or out != '':
+  #  logger(cmd)
+  #  logger("Err: " + err + " :Err")
+  #  logger("Out: " + out + " :Out")
     raise KeyboardInterrupt
 
 if __name__ == "__main__":

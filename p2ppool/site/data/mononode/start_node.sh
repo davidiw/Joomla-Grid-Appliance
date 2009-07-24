@@ -1,7 +1,6 @@
 #!/bin/bash
 chmod +x $0
 path=`which $0`
-echo $path
 path=`dirname $path`
 chmod +x $path/BasicNode.exe
 chmod +x $path/cronolog
