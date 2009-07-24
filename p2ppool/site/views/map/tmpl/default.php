@@ -1,7 +1,6 @@
 <?php // no direct access
 defined('_JEXEC') or die('Restricted access')
 ?>
-
 <script type="text/javascript">
 function addLoadEvent(func) {
   var oldonload = window.onload;
@@ -10,7 +9,6 @@ function addLoadEvent(func) {
   } else {
     window.onload = function() { oldonload(); func(); }
   }
-  alert(oldonload());
 }
 
 function addUnloadEvent(func) {
@@ -29,9 +27,15 @@ function mapLoad() {
     map.addControl(new GLargeMapControl());
     map.addControl(new GOverviewMapControl());
 
-<?php foreach($this->coordinates as $coord) { ?>
-    map.addOverlay(new GMarker(new GLatLng(<?php echo $coord; ?>)));;
-<?php } ?>
+<?php 
+if($this->coordinates) {
+  foreach($this->coordinates as $coord) {
+?>
+      map.addOverlay(new GMarker(new GLatLng(<?php echo $coord; ?>)));;
+<?php
+  }
+}
+?>
   }
 }
 

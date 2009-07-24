@@ -37,7 +37,11 @@ class JoomlaBasicNode:
     os.system("unzip -o -d " + self.node_path + " " + self.input + " &> /dev/null")
     shutil.copy(self.base_path + "node.config", self.node_path + "node.config")
 
-    args = "/usr/bin/mono " + self.node_path + "BasicNode.exe " + self.node_path + \
+    app = "BasicNode.exe "
+    if os.path.exists(self.node_path + "P2PNode.exe"):
+      app = "P2PNode.exe -n "
+
+    args = "/usr/bin/mono " + self.node_path + app + self.node_path + \
         "node.config &> " + self.node_path + "out &"
     os.execvp("/usr/bin/mono", args.split(' '))
 

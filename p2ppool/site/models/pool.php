@@ -114,7 +114,7 @@ class P2PPoolModelPool extends JModel {
     if($node_list) {
       $db = & JFactory::getDBO();
       $db->Execute("DELETE FROM ".$this->pool->pool."_pool");
-      $nodes = split("\n", $node_list);
+      $nodes = split("[\n\r]+", $node_list);
 
       foreach($nodes as $node) {
         if(empty($node)) {
@@ -243,11 +243,11 @@ class P2PPoolModelPool extends JModel {
     $db->setQuery($query);
     $installed = $db->loadAssocList();
     
-    $query = "SELECT name, ip FROM #pool_pool WHERE ip NOT IN (SELECT ip FROM ".
-      "#pool_stats WHERE count = ".$count.")";
-    $query = str_replace("#pool", $this->pool->pool, $query);
-    $db->setQuery($query);
-    $missing = $db->loadRowList();
+#    $query = "SELECT name, ip FROM #pool_pool WHERE ip NOT IN (SELECT ip FROM ".
+#      "#pool_stats WHERE count = ".$count.")";
+#    $query = str_replace("#pool", $this->pool->pool, $query);
+#    $db->setQuery($query);
+#    $missing = $db->loadRowList();
     
     return array($installed, $missing);
   }
@@ -340,6 +340,17 @@ class P2PPoolModelPool extends JModel {
   function findBadNodes($start = NULL, $end = NULL) {
   }
 
+  function getNodes() {
+    if(empty($this->pool)) {
+      $this->loadDefaultPool();
+    }
+
+    $db = & JFactory::getDBO();
+    $query = "SELECT ip FROM ".$this->pool->pool."_pool";
+    $db->setQuery($query);
+    return $db->loadResultArray();
+  }
+
   // Returns a list of tasks that can be executed
   function checkTasks() {
     $db = & JFactory::getDBO();
@@ -354,14 +365,6 @@ class P2PPoolModelPool extends JModel {
       $db->Execute($query);
     }
     return $jobs;
-  }
-
-  // Returns all running pools
-  function getRunning() {
-    $db = & JFactory::getDBO();
-    $query = "SELECT pool FROM p2ppools WHERE running = 1";
-    $db->setQuery($query);
-    return $db->loadResultArray();
   }
 
   // Checks to see if a pool can be removed

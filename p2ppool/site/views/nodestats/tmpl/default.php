@@ -20,7 +20,10 @@ table.sortable thead {
     <th><?php echo $title; ?></th>
 <?php } ?>
   </tr>
-<?php foreach($this->nodes as $node) { ?>
+<?php
+if($this->nodes) {
+  foreach($this->nodes as $node) {
+?>
   <tr>
     <td><?php
 if($node["name"]) {
@@ -33,5 +36,8 @@ if($node["name"]) {
     <td><?php echo $node[$field]; ?></td>
 <?php   } ?>
   </tr>
-<?php } ?>
+<?php
+  }
+}
+?>
 </table>

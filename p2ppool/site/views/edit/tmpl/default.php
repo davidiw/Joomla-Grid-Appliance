@@ -77,6 +77,13 @@ if($this->pool->install_path) {
             checked="on"
 <?php } ?>/></td>
     </tr>
+    <tr>
+      <td>Test system</td>
+      <td><input type="checkbox" name="test" value="1"
+<?php if($this->pool->test) { ?>
+            checked="on"
+<?php } ?>/></td>
+    </tr>
   </table>
   <input type="hidden" name="task" value="<?php echo $this->task; ?>" />
   <input type="hidden" name="option" value="com_p2ppool" />

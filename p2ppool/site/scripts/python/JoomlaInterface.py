@@ -52,6 +52,7 @@ class JoomlaRemoter:
     base_path = sys.path[0] + os.sep + ".." + os.sep + ".." + os.sep
     self.ssh_key = base_path + "private" + os.sep + pool + os.sep + "ssh_key"
     self.path_to_files = base_path + "data" + os.sep + pool + os.sep + "install.tgz"
+    self.log_dir =  base_path + "data" + os.sep + pool + os.sep + task + ".log"
     os.chdir(base_path + "data")
 
     db = self.jdb.get_db()
@@ -63,6 +64,11 @@ class JoomlaRemoter:
     self.mkbundle = str(res[2]) == "1"
     cursor.close()
     db.close()
+
+  def output(self, msg):
+    log = open(self.log_dir, "a")
+    log.write(str(msg) + "\n")
+    log.close()
 
   def get_nodes(self, all, ref = "name"):
     db = self.jdb.get_db()
@@ -96,7 +102,8 @@ class JoomlaRemoter:
       nodes = self.get_nodes(True)
       plab = Remoter.Remoter(self.task, nodes, username = self.ssh_username, \
         path_to_files = self.path_to_files, update_callback = self.install_callback, \
-        ssh_key = self.ssh_key, install_path = self.install_path, pool = self.pool)
+        ssh_key = self.ssh_key, install_path = self.install_path, pool = self.pool, \
+        logger = self.output)
       plab.run()
 
   def cleanup(self):

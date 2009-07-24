@@ -16,11 +16,15 @@ class P2PPoolModelSystem extends JModel {
     $this->pool = $pool;
   }
 
+  // This is probably horribly worded and should be called beginUninstall
   function destroySystem() {
     $this->available();
     $this->runAction("uninstall");
   }
 
+  // This is called once there are no more processes running, the could
+  // potentially be placed into the python code, but I am not sure the best
+  // location for it
   static function deleteFiles($pool) {
     $path = JPATH_COMPONENT.DS."data".DS.$pool;
     system("rm -rf ".$path);
@@ -28,35 +32,26 @@ class P2PPoolModelSystem extends JModel {
     system("rm -rf ".$path);
   }
 
-  function gatherLogs() {
-    $this->available();
-    $this->runAction("get_logs");
-  }
-
+  // Not implemented
   function suspendSystem() {
     $this->available();
   }
 
-  function checkSystem() {
-    $this->runAction("check");
-  }
-
-  function crawlSystem() {
-    $this->runAction("crawl");
-  }
-
+  // Did we load a pool?
   function available() {
     if(empty($this->pool)) {
       JError::raiseError(404, JText::_('No pool nor default pool specified'));
     }
   }
 
+  // Execute a task
   function runAction($action) {
     $path = JPATH_COMPONENT.DS."data".DS.$this->pool->pool;
     $task = $this->app." ".$action." ".$this->pool->pool." True &> ".  $path.DS."setup.log";
     system($task);
   }
 
+  // Update our files and optionally run an update on the pool
   function update($ssh_key, $files, $nodes) {
     jimport('joomla.filesystem.file');
     jimport('joomla.filesystem.folder');
@@ -67,25 +62,29 @@ class P2PPoolModelSystem extends JModel {
       JFile::upload($ssh_key, $path.DS."ssh_key");
       chmod($path.DS."ssh_key", 0600);
     }
+
+    $files_update = false;
     $path = JPATH_COMPONENT.DS."data".DS.$this->pool->pool;
     JFolder::create($path);
     if($files) {
       JFile::upload($files, $path.DS."files.zip");
+      $files_update = true;
     }
 
     JFile::write($path.DS.$this->pool->pool.".config", $this->generateConfig($nodes, false));
     JFile::write($path.DS."node.config", $this->generateConfig($nodes));
 
-    $mkbundle = "false";
-    if($this->pool->mkbundle) {
-      $mkbundle = "true";
-    }
-
     $this->pool->running = 1;
     $this->pool->store();
-    $this->runAction("install");
+    if($files_update) {
+      $this->runAction("install");
+    } else {
+      $this->runAction("check");
+    }
   }
 
+  // Configuration generation  (see what I did there comment = transpose of the
+  // combined function name.
   function generateConfig($nodes, $enable_rpc = true) {
     $output[] = "<NodeConfig>";
     $output[] = "  <BrunetNamespace>".$this->pool->namespace."</BrunetNamespace>";

@@ -12,12 +12,23 @@ function check() {
     if(action.checked) {
       var ele = document.createElement("input");
       ele.type = "hidden";
-      if(action.value == "logs" || action.value == "stop") {
-        ele.name = "task";
-      } else {
-        ele.name = "view";
+      switch(action.value) {
+        case "gather_logs":
+        case "ps":
+        case "check":
+          ele.name = "task";
+          ele.value = "adminAction";
+          form.appendChild(action);
+          break;
+        case "stop":
+          ele.name = "task";
+          ele.value = action.value;
+          break;
+        default:
+          ele.name = "view";
+          ele.value = action.value;
       }
-      ele.value = action.value;
+
       form.appendChild(ele);
       break;
     }
@@ -95,8 +106,16 @@ function selectPool() {
       <td>Upgrade</td>
     <tr>
     <tr>
-      <td><input type="radio" name="action" value="logs" /></td>
+      <td><input type="radio" name="action" value="gather_logs" /></td>
       <td>Gather Logs</td>
+    <tr>
+    <tr>
+      <td><input type="radio" name="action" value="ps" /></td>
+      <td>Gather Memory</td>
+    <tr>
+    <tr>
+      <td><input type="radio" name="action" value="check" /></td>
+      <td>Check system</td>
     <tr>
 <?php } ?>
   </table></td>

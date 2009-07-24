@@ -13,6 +13,7 @@ CREATE TABLE `p2ppools` (
   `running` tinyint(1) default '0',
   `inuse` tinyint(1) default '0',
   `uninstall` tinyint(1) default '0',
+  `test` tinyint(1) default '0',
   PRIMARY KEY  (`pool_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
@@ -25,9 +26,9 @@ CREATE TABLE `p2ppool_tasks` (
   PRIMARY KEY (`task_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
-INSERT INTO p2ppool_tasks (task, recurring, next_run, period) VALUE ("crawl", 1, NOW(), 1500);
-INSERT INTO p2ppool_tasks (task, recurring, next_run, period) VALUE ("check", 1, NOW(), 86100);
-INSERT INTO p2ppool_tasks (task, recurring, next_run, period) VALUE ("uninstall", 1, NOW(), 86100);
+INSERT INTO p2ppool_tasks (task, recurring, next_run, period) VALUE ("crawl", 1, NOW(), 1800);
+INSERT INTO p2ppool_tasks (task, recurring, next_run, period) VALUE ("check", 1, NOW(), 86400);
+INSERT INTO p2ppool_tasks (task, recurring, next_run, period) VALUE ("uninstall", 1, NOW(), 86400);
 
 CREATE TABLE `p2ppool_taskman` (
   `pool` varchar(256) NOT NULL,

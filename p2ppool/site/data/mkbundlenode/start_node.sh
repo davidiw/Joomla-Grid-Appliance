@@ -11,5 +11,10 @@ cd $path
 export MONO_NO_SMP=1
 
 pool=`cat $path/pool`
-nohup $path/basicnode $path/$pool.config 2>&1 | $path/cronolog --period="1 day" $path/node.log.%y%m%d.txt &
+if [[ -e $path/basicnode ]]; then
+  app="basicnode"
+elif [[ -e $path/p2pnode ]]; then
+  app="p2pnode -n "
+fi
+nohup $path/$app $path/$pool.config 2>&1 | $path/cronolog --period="1 day" $path/node.log.%y%m%d.txt &
 sleep 2

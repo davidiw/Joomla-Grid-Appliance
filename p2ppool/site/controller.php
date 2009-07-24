@@ -1,4 +1,6 @@
 <?php
+// no direct access
+defined('_JEXEC') or die('Restricted access');
 jimport('joomla.application.component.controller');
 
 class P2PPoolController extends JController
@@ -7,8 +9,10 @@ class P2PPoolController extends JController
     $user =& JFactory::getUser();
 
     if($user->usertype == "Administrator" or
-      $user->usertype == "Super Administrator" or
-      $user->usertype == "Publisher") {
+      $user->usertype == "Super Administrator"
+    ) {
+//      or
+//      $user->usertype == "Publisher") {
       $enable = true;
     } else {
       $enable = false;
@@ -26,22 +30,25 @@ class P2PPoolController extends JController
       if($task == "crawl") {
         $pools = $pool_model->getPools();
         foreach($pools as $pool) {
-          if(!$pool_model->setPool($pool[0])) {
+          if(!$pool_model->setPool($pool[0]) or !$pool_model->pool->running) {
             continue;
           }
           $system =& $this->getModel("System");
           $system->setPool($pool_model->pool);
-          $system->crawlSystem();
+          $system->runAction($task);
         }
       } else if($task == "check") {
         $pools = $pool_model->getPools();
         foreach($pools as $pool) {
-          if(!$pool_model->setPool($pool[0])) {
+          if(!$pool_model->setPool($pool[0]) or
+            !$pool_model->pool->running or
+            $pool_model->pool->test)
+          {
             continue;
           }
           $system =& $this->getModel("System");
           $system->setPool($pool_model->pool);
-          $system->checkSystem();
+          $system->runAction($task);
         }
       } else if($task == "uninstall") {
         list($to_kill, $finished) = $pool_model->removePools();
@@ -53,6 +60,36 @@ class P2PPoolController extends JController
         }
       }
     }
+  }
+
+  function adminAction() {
+    if(!$this->allowManagement()) {
+      JError::raiseError(403, JText::_('Access Forbidden'));
+    }
+
+    $pool_model =& $this->getModel("Pool");
+    if(!$pool_model->setPool(JRequest::getVar("pool_id"))) {
+      $msg = "No pool selected.";
+      $link = "index.php?option=com_p2ppool";
+      $this->setRedirect($link, $msg);
+      return;
+    }
+
+    $action = JRequest::getVar("action");
+    if(empty($action)) {
+      $msg = "No action selected.";
+      $link = "index.php?option=com_p2ppool";
+      $this->setRedirect($link, $msg);
+      return;
+    }
+
+    $system =& $this->getModel("System");
+    $system->setPool($pool_model->pool);
+    $system->runAction($action);
+    $msg = "Called ".$action." on ".$pool_model->pool->pool."...";
+
+    $link = "index.php?option=com_p2ppool";
+    $this->setRedirect($link, $msg);
   }
 
   // Allows an admin to force a check on the system
@@ -69,8 +106,8 @@ class P2PPoolController extends JController
 
     $system =& $this->getModel("System");
     $system->setPool($pool_model->pool);
-    $system->checkSystem();
-    $msg = "Checking system...";
+    $system->runAction("check");
+    $msg = "Checking ".$pool_model->pool->pool."...";
 
     $link = "index.php?option=com_p2ppool";
     $this->setRedirect($link, $msg);
@@ -90,7 +127,7 @@ class P2PPoolController extends JController
 
     $system =& $this->getModel("System");
     $system->setPool($pool_model->pool);
-    $system->crawlSystem();
+    $system->runAction("crawl");
     $msg = "Crawling ".$pool_model->pool->pool."...";
 
     $link = "index.php?option=com_p2ppool";
@@ -220,7 +257,7 @@ class P2PPoolController extends JController
     $model->setPool(JRequest::getVar("pool_id"));
     if($view_type == "create" or $view_type == "upgrade") {
       if($view_type == "upgrade" and empty($model->pool)) {
-        $model->setDefaultPool();
+        $model->loadDefaultPool();
       }
       $view_type = "edit";
     }

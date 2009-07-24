@@ -46,14 +46,20 @@ class Preparer:
 
   def prepare_mkbundle(self):
     os.chdir(self.inpath)
-    dlls = "Mono.Posix.dll "
+    dlls = " Mono.Posix.dll "
     for i in os.walk('.'):
       files = i[2]
       for file in files:
         if file.endswith(".dll"):
           dlls += file + " "
-    os.system("mkbundle2 -o basicnode --deps --config-dir . --static -z BasicNode.exe " + dlls)
-    shutil.copy(self.inpath + "basicnode", self.outpath + "basicnode")
+    mkbundle_app = "basicnode"
+    app = "BasicNode.exe "
+    if os.path.exists("P2PNode.exe"):
+      mkbundle_app = "p2pnode"
+      app = "P2PNode.exe "
+
+    os.system("mkbundle2 -o " + mkbundle_app + " --deps --config-dir . --static -z " + app + dlls)
+    shutil.copy(self.inpath + mkbundle_app, self.outpath + mkbundle_app)
 
 if __name__ == '__main__':
   main()

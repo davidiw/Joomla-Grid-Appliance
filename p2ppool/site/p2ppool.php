@@ -8,10 +8,8 @@ $controller = new P2PPoolController();
 $controller->registerTask('create', 'create');
 $controller->registerTask('stop', 'stop');
 $controller->registerTask('upgrade', 'upgrade');
-$controller->registerTask('logs', 'gatherLogs');
 $controller->registerTask('cron', 'checkTasks');
-$controller->registerTask('crawl', 'crawl');
-$controller->registerTask('check', 'check');
+$controller->registerTask('adminAction', 'adminAction');
 $controller->registerTask('uninstall', 'uninstall');
 $controller->registerDefaultTask('viewHandler');
 

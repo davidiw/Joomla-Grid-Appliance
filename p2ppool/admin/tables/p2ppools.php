@@ -17,6 +17,7 @@ class TableP2PPools extends JTable {
   var $running = null;
   var $inuse = null;
   var $uninstall = null;
+  var $test = null;
 
   function TableP2PPools(&$db) {
     parent::__construct('p2ppools', 'pool_id', $db);

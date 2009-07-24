@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <metadata>
-  <view title="Local State.">
-    Display a summary of the local nodes state including running tasks.
+  <view title="System Stats.">
+    Display a summary of some recent crawls for the system.
   </view>
 </metadata>

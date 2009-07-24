@@ -3,7 +3,7 @@ usage = """usage:
 Remoter [--path_to_files=<filename>] [--username=<username>]
   --path_to_nodes=<filename> [--ssh_key=<filename>]
   [--install_path=<path>] action
-action = check, install, uninstall, gather_stats, get_logs, uptime (check
+action = check, install, uninstall, gather_stats, gather_logs, uptime (check
   attempts to add the boot strap software to nodes that do not have it yet...
   a common problem on planetlab)
 path_to_nodes = a file containing a new line delimited file containing hosts
@@ -59,9 +59,13 @@ def print_usage():
   print usage
   os._exit(0)
 
+def logger_std_out(test):
+  print(text)
+
 class Remoter:
   def __init__(self, action, nodes = None, username = "", path_to_files = "", \
-    update_callback = False, ssh_key=None, install_path = "", pool = ""):
+    update_callback = False, ssh_key=None, install_path = "", pool = "", logger = logger_std_out):
+    self.logger = logger
     self.data_path = sys.path[0] + os.sep + ".." + os.sep + ".." + os.sep + "data" + os.sep + pool + os.sep
     os.chdir(self.data_path)
     if action == "install":
@@ -72,8 +76,8 @@ class Remoter:
       self.task = self.uninstall_node
     elif action == "gather_stats":
       self.task = self.get_stats
-    elif action == "get_logs":
-      self.task = self.get_logs
+    elif action == "gather_logs":
+      self.task = self.gather_logs
       os.system("rm -rf logs")
       os.system("mkdir logs")
     elif action == "uptime":
@@ -104,7 +108,8 @@ class Remoter:
     self.pool = pool
 
     ssh_ops = "-o StrictHostKeyChecking=no -o HostbasedAuthentication=no " + \
-        "-o CheckHostIP=no -o ConnectTimeout=10 "
+        "-o CheckHostIP=no -o ConnectTimeout=10 -o ServerAliveInterval=30 " + \
+        "-o BatchMode=yes -o UserKnownHostsFile=/dev/null "
 
     if ssh_key != None:
       ssh_ops = ssh_ops + "-o IdentityFile=" + ssh_key + " "
@@ -149,7 +154,7 @@ class Remoter:
         for pid in pids:
           os.kill(pid, signal.SIGKILL)
       count += 1
-    if self.action == "get_logs":
+    if self.action == "gather_logs":
       os.system("rm -rf logs.zip")
       os.system("zip -r9 logs.zip logs")
       os.system("rm -rf logs")
@@ -166,17 +171,16 @@ class Remoter:
   def node_install(self, node, check):
     base_ssh = self.base_ssh_cmd + node + " "
     if check:
-      tobreak = True
-      try: 
+      skip = True
+      try:
         # This prints something if all is good ending this install attempt
-        ssh_cmd("%s bash %s/node/check.sh" %s (base_ssh, self.install_path), False)
+        ssh_cmd("%s bash %s/node/check.sh" % (base_ssh, self.install_path), False)
       except:
-        tobreak = False
-      if tobreak:
-        print node + " no state change..."
+        skip = False
+
+      if skip:
+        self.logger(node + " no state change...")
         return
-        if self.update_callback:
-          self.update_callback(node, 1)
 
     try:
       # this helps us leave early in case the node is unaccessible
@@ -185,7 +189,6 @@ class Remoter:
       ssh_cmd("%s mkdir -p %s" % (base_ssh, self.install_path))
       cmd = "%s %s %s@%s:%s/node.tgz &> /dev/null" % (self.base_scp_cmd, \
           self.path_to_files, self.username, node, self.install_path)
-      print cmd
       os.system(cmd)
       ssh_cmd("%s tar --overwrite --overwrite-dir -zxf %s/node.tgz -C %s" % \
           (base_ssh, self.install_path, self.install_path))
@@ -198,12 +201,12 @@ class Remoter:
       time.sleep(20)
       if os.waitpid(pid, os.P_NOWAIT) == (0, 0):
         os.kill(pid, signal.SIGKILL)
-      print node + " done!"
+      self.logger(node + " done!")
       if self.update_callback:
         self.update_callback(node, 1)
     except:
-      traceback.print_exc(file=sys.stdout)
-      print node + " failed!"
+#      traceback.print_exc(file=sys.stdout)
+      self.logger(node + " failed!")
       if self.update_callback:
         self.update_callback(node, 0)
     return
@@ -217,16 +220,15 @@ class Remoter:
       if self.update_callback:
         self.update_callback(node, 0)
       else:
-        print node + " done!"
+        self.logger(node + " done!")
     except:
       if self.update_callback:
         self.update_callback(node, 1)
       else:
-        traceback.print_exc(file=sys.stdout)
-        print node + " failed!"
+        self.logger(node + " failed!")
       return
 
-  def get_logs(self, node):
+  def gather_logs(self, node):
     os.system("mkdir logs/" + node)
     cmd = "%s %s@%s:%s/node/node.log.* %s/logs/%s/. &> /dev/null" % \
         (self.base_scp_cmd, self.username, node,  self.install_path, \
@@ -249,16 +251,16 @@ class Remoter:
 def ssh_cmd(cmd, redirect=True):
   if redirect:
     cmd += " &> /dev/null"
-  print cmd  
-  p = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  p = subprocess.Popen(cmd.split(' '), stdin=open("/dev/null"), \
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   os.waitpid(p.pid, 0)
   err = p.stderr.read()
   out = p.stdout.read()
   good_err = re.compile("Warning: Permanently added")
   if (good_err.search(err) == None and err != '') or out != '':
-    print cmd
-    print "Err: " + err
-    print "Out: " + out
+#    self.logger(cmd)
+#    self.logger("Err: " + err)
+#    self.logger("Out: " + out)
     raise KeyboardInterrupt
 
 if __name__ == "__main__":
