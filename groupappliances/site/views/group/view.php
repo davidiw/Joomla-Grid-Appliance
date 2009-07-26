@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.view');
 
-class GroupVPNViewGroup extends JView {
+class GroupAppliancesViewGroup extends JView {
   function display($tpl = null) {
     $model =& $this->getModel();
     $members = $model->loadGroupMembers();

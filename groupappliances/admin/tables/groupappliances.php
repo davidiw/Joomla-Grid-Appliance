@@ -11,7 +11,7 @@ class TableGroupAppliances extends JTable {
   var $description = null;
 
   function TableGroupAppliances(&$db) {
-    parent::__construct('groupappliances', 'group_id', $db);
+    parent::__construct('groupappliances', 'ga_id', $db);
   }
 
   function store($updateNulls = false) {

@@ -34,7 +34,7 @@ function action(task, group) {
 
   var group_ele = document.createElement("input");
   group_ele.type = "hidden";
-  group_ele.name = "group_id";
+  group_ele.name = "ga_id";
   group_ele.value = group;
   form.appendChild(group_ele);
 
@@ -43,7 +43,7 @@ function action(task, group) {
 </script>
 
 <form action="index.php" method="post" id="form">
-<input type="hidden" name="option" value="com_groupvpn" />
+<input type="hidden" name="option" value="com_groupappliances" />
 </form>
 
 <?php if($this->groups) { ?>
@@ -51,6 +51,7 @@ function action(task, group) {
   <tr>
     <td>Group</td>
     <td>Description</td>
+    <td>GroupVPN</td>
     <td>Reason for joining</td>
     <td>State</td>
     <td>Action</td>
@@ -61,10 +62,11 @@ if($this->my_groups) {
 ?>
   <tr>
     <td>
-      <a href="index.php?option=com_groupvpn&task=viewHandler&view=group&group_id=<?php echo $group->group_id; ?>"><?php
-        echo $this->groups[$group->group_id]->group_name; ?></a>
+      <a href="index.php?option=com_groupappliances&task=viewHandler&view=group&ga_id=<?php echo $group->ga_id; ?>"><?php
+        echo $this->groups[$group->ga_id]->group_name; ?></a>
     </td>
-    <td><?php echo $this->groups[$group->group_id]->description; ?></td>
+    <td><?php echo $this->groups[$group->ga_id]->description; ?></td>
+    <td><?php echo $this->groups[$group->ga_id]->gn; ?></td>
     <td><?php echo $group->reason; ?></td>
     <td><?php
 $noleave = false;
@@ -82,7 +84,7 @@ if($group->admin) {
 } ?></td>
     <td><?php
 if(!$noleave) {?>
-    <input type="button" value="Leave" onclick="action('leave', <?php echo $group->group_id; ?>)" />
+    <input type="button" value="Leave" onclick="action('leave', <?php echo $group->ga_id; ?>)" />
 <?php } ?></td>
   </tr>
 <?php
@@ -90,19 +92,20 @@ if(!$noleave) {?>
 }
 
 foreach($this->groups as $group) {
-  if($this->my_groups[$group->group_id]) {
+  if($this->my_groups[$group->ga_id]) {
     continue;
   }
 ?>
   <tr>
     <td>
-      <a href="index.php?option=com_groupvpn&task=viewHandler&view=group&group_id=<?php echo $group->group_id; ?>"><?php
+      <a href="index.php?option=com_groupappliances&task=viewHandler&view=group&ga_id=<?php echo $group->ga_id; ?>"><?php
         echo $group->group_name; ?></a>
     </td>
     <td><?php echo $group->description; ?></td>
-    <td><input type="text" id="reason_<?php echo $group->group_id; ?>" /></td>
+    <td><?php echo $group->gn; ?></td>
+    <td><input type="text" id="reason_<?php echo $group->ga_id; ?>" /></td>
     <td />
-    <td><input type="button" value="Join" onclick="action('join', <?php echo $group->group_id; ?>)" /></td>
+    <td><input type="button" value="Join" onclick="action('join', <?php echo $group->ga_id; ?>)" /></td>
   </tr>
 <?php } ?>
 </table>
@@ -112,9 +115,16 @@ foreach($this->groups as $group) {
 Create a new group:
 </p>
 <form action="index.php" method="post" id="form">
-<input type="hidden" name="option" value="com_groupvpn" />
+<input type="hidden" name="option" value="com_groupappliances" />
 <input type="hidden" name="task" value="create" />
 <input type="text" name="group_name" value="group name" />
 <textarea name="description">Group description</textarea>
+<select name="group_id" id="group_id">
+<?php foreach($this->groupvpns as $groupvpn) { ?> 
+  <option value="<?php echo $groupvpn->group_id; ?>">
+    <?php echo $groupvpn->group_name; ?>
+  </option>
+<?php } ?>
+</select>
 <input type="submit" value="Create group" />
 </form>

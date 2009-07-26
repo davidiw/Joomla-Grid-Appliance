@@ -13,13 +13,14 @@
   <description>Appliance Groups support for Joomla</description>
 
   <files folder="site">
-    <filename>groupappliances.php</filename>
     <filename>controller.php</filename>
-    <filename>models/groupappliances.php</filename>
-    <filename>views/group/tmpl/default.php</filename>
-    <filename>views/group/view.php</filename>
-    <filename>views/groups/tmpl/default.php</filename>
     <filename>views/groups/view.php</filename>
+    <filename>views/groups/tmpl/default.php</filename>
+    <filename>views/group/view.php</filename>
+    <filename>views/group/tmpl/default.php</filename>
+    <filename>models/groupappliances.php</filename>
+    <filename>data/empty_floppy</filename>
+    <filename>groupappliances.php</filename>
   </files>
 
   <install>

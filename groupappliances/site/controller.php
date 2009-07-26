@@ -32,7 +32,7 @@ class GroupAppliancesController extends JController
     $model =& $this->getModel("GroupAppliances");
     $model->manageGroup();
 
-    $link = $this->linkbase."&view=group&group_id=".JRequest::getVar("group_id");
+    $link = $this->linkbase."&view=group&ga_id=".JRequest::getVar("ga_id");
     $this->setRedirect($link, $msg);
   }
 
@@ -52,7 +52,7 @@ class GroupAppliancesController extends JController
       $msg = "Group created.";
     }
 
-    $link = $this->linkbase."&view=config&group_id=".$group_id;
+    $link = $this->linkbase."&view=group&ga_id=".$group_id;
     $this->setRedirect($link, $msg);
   }
 
@@ -71,6 +71,7 @@ class GroupAppliancesController extends JController
 
   function downloadFloppy() {
     $model =& $this->getModel("GroupAppliances");
+    $model->downloadFloppy();
 //    $model->loadXMLConfig();
 
 //    $link = JRoute::_($this->linkbase."&view=group&group_id=".JRequest::getVar("group_id"), -1);

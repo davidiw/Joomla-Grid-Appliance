@@ -69,8 +69,9 @@ if($member->admin) { ?>
   <tr><td>Revoke: </td><td><input type="checkbox" name="revoke[]" value="<? echo $member->user_id; ?>" /></td></tr>
 <?php
 }
-if(!$member->revoked and !$member->member and !$member->admin) { ?>
+if(!$member->revoked and !$member->member and !$member->admin and $member->request) { ?>
   <tr><td>Accept: </td><td><input type="checkbox" name="accept[]" value="<? echo $member->user_id; ?>" /></td></tr>
+  <tr><td>Deny: </td><td><input type="checkbox" name="deny[]" value="<? echo $member->user_id; ?>" /></td></tr>
 <?php
 }
   ?></table></td>
@@ -79,12 +80,22 @@ if(!$member->revoked and !$member->member and !$member->admin) { ?>
 <?php } ?>
 </table>
 
-<?php if($this->admin) { ?>
+<?php if($this->member) { if($this->admin) { ?>
   <input type="button" value="Submit changes" onclick="submitTask('manage')" />
   <input type="button" value="Delete" onclick="submitTask('deleteGroup')" />
+  Generate Floppy:
 <?php } ?>
+  <select name="floppy_type">
+    <option value="Client">Client</option>
+    <option value="Worker">Worker</option>
+<?php if($this->admin) { ?>
+    <option value="Server">Server</option>
+<?php } ?>
+  </select>
+  <input type="hidden" name="ga_id" value="<?php echo $this->group->ga_id; ?>" />
   <input type="hidden" name="group_id" value="<?php echo $this->group->group_id; ?>" />
-  <input type="hidden" name="option" value="com_groupvpn" />
-  <input type="hidden" id="task" name="task" value="downloadConfig" />
-  <input type="button" value="Download Config" onclick="secureSubmit()" />
+  <input type="hidden" name="option" value="com_groupappliances" />
+  <input type="hidden" id="task" name="task" value="downloadFloppy" />
+  <input type="button" value="Download" onclick="secureSubmit()" />
+<?php } ?>
 </form>

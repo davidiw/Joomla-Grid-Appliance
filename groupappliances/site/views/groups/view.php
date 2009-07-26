@@ -4,13 +4,12 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.application.component.view');
 
-class GroupVPNViewGroups extends JView {
+class GroupAppliancesViewGroups extends JView {
   function display($tpl = null) {
     $model =& $this->getModel();
-    $my_groups = $model->loadMyGroupInformation();
-    $groups = $model->loadGroups();
-    $this->assignRef('my_groups', $my_groups);
-    $this->assignRef('groups', $groups);
+    $this->assignRef('my_groups', $model->loadMyGroupInformation());
+    $this->assignRef('groups', $model->loadGroups());
+    $this->assignRef('groupvpns', $model->getGroupVPNs());
     parent::display($tpl);
   }
 }
