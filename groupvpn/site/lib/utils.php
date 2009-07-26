@@ -1,12 +1,12 @@
 <?php
 class Utils {
   // Specifies a file on the host to transfer to the client.
-  static function transferFile($file) {
+  static function transferFile($file, $filename) {
     header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
     header('Content-Length: '.filesize($file));
-    header('Content-Disposition: attachment; filename=config.zip');
+    header('Content-Disposition: attachment; filename='.$filename);
     ob_end_flush();
     Utils::readfileChunked($file);
   }

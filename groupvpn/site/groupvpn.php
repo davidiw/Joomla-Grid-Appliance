@@ -18,6 +18,7 @@ $controller->registerTask('leave', 'leaveGroup');
 $controller->registerTask('manage', 'manageGroup');
 $controller->registerTask('delete', 'deleteGroup');
 $controller->registerTask('create', 'createGroup');
+$controller->registerTask('reviewAccount', 'reviewAccount');
 
 $controller->registerDefaultTask('viewHandler');
 

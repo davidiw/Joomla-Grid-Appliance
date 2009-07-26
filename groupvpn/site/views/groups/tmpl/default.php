@@ -4,38 +4,14 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 
 <script type="text/javascript">
-function action(task, group) {
+function addGroup(group) {
   var form = document.getElementById("form");
-
-  var task_ele = document.createElement("input");
-  task_ele.type = "hidden";
-  task_ele.name = "task";
-  if(task == "view") {
-    task_ele.value = "viewHandler";
-    var view_ele = document.createElement("input");
-    view_ele.type = "hidden";
-    view_ele.name = "view";
-    view_ele.value = "group";
-    form.appendChild(view_ele);
-  } else {
-    task_ele.value = task;
-  }
-
-  if(task == "join") {
-    var reason_in = document.getElementById("reason_" + group);
-    var view_ele = document.createElement("input");
-    view_ele.type = "hidden";
-    view_ele.name = "reason";
-    view_ele.value = reason_in.value;
-    form.appendChild(view_ele);
-  }
-
-  form.appendChild(task_ele);
 
   var group_ele = document.createElement("input");
   group_ele.type = "hidden";
   group_ele.name = "group_id";
   group_ele.value = group;
+
   form.appendChild(group_ele);
 
   form.submit();
@@ -44,14 +20,12 @@ function action(task, group) {
 
 <form action="index.php" method="post" id="form">
 <input type="hidden" name="option" value="com_groupvpn" />
-</form>
 
 <?php if($this->groups) { ?>
 <table border=1>
   <tr>
     <td>Group</td>
     <td>Description</td>
-    <td>Reason for joining</td>
     <td>State</td>
     <td>Action</td>
   </tr>
@@ -65,7 +39,6 @@ if($this->my_groups) {
         echo $this->groups[$group->group_id]->group_name; ?></a>
     </td>
     <td><?php echo $this->groups[$group->group_id]->description; ?></td>
-    <td><?php echo $group->reason; ?></td>
     <td><?php
 $noleave = false;
 if($group->admin) {
@@ -82,7 +55,9 @@ if($group->admin) {
 } ?></td>
     <td><?php
 if(!$noleave) {?>
-    <input type="button" value="Leave" onclick="action('leave', <?php echo $group->group_id; ?>)" />
+    <button type="submit" name="task" value="leave" onclick="addGroup(<?php echo $group->group_id; ?>)">
+      Leave
+    </button>
 <?php } ?></td>
   </tr>
 <?php
@@ -100,21 +75,16 @@ foreach($this->groups as $group) {
         echo $group->group_name; ?></a>
     </td>
     <td><?php echo $group->description; ?></td>
-    <td><input type="text" id="reason_<?php echo $group->group_id; ?>" /></td>
     <td />
-    <td><input type="button" value="Join" onclick="action('join', <?php echo $group->group_id; ?>)" /></td>
+    <td>
+      <button type="submit" name="view" value="account" onclick="addGroup(<?php echo $group->group_id; ?>)">
+        Join
+      </button>
+    </td>
   </tr>
 <?php } ?>
 </table>
 <?php } ?>
 
-<p>
-Create a new group:
-</p>
-<form action="index.php" method="post" id="form">
-<input type="hidden" name="option" value="com_groupvpn" />
-<input type="hidden" name="task" value="create" />
-<input type="text" name="group_name" value="group name" />
-<textarea name="description">Group description</textarea>
-<input type="submit" value="Create group" />
+<button type="submit" name="view" value="config">Create a new group</button>
 </form>

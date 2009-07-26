@@ -45,20 +45,23 @@ class GroupVPNController extends JController
     $this->setRedirect($this->linkbase, $msg);
   }
 
-  function createGroup() {
+  function reviewAccount() {
     $model =& $this->getModel("GroupVPN");
-    $group_id = $model->storeGroup();
-    if($group_id) {
-      $msg = "Group created.";
+    if(!$model->isAdmin()) {
+      JError::raiseWarning("Not a manager!");
+      $this->setRedirect($this->linkbase);
+      return;
     }
 
-    $link = $this->linkbase."&view=config&group_id=".$group_id;
-    $this->setRedirect($link, $msg);
+    $view =& $this->getView("checkAccount");
+    $view->setModel($model, $default = true);
+    $view->display();
   }
 
   // Parses the JRequest view variable to render a view
   function viewHandler() {
     $view_type = JRequest::getVar("view");
+    $tpl = null;
     if(empty($view_type)) {
       $view_type = "groups";
     }
@@ -66,15 +69,23 @@ class GroupVPNController extends JController
     $model =& $this->getModel("GroupVPN");
     $view =& $this->getView($view_type);
     $view->setModel($model, $default = true);
-    $view->display();
+    $view->display($tpl);
   }
 
   function storeConfig() {
     $model =& $this->getModel("GroupVPN");
+    $group_id = $model->storeGroup();
+    if(!$group_id) {
+      echo "HERE";
+      exit;
+      $this->setRedirect($this->linkbase);
+      return;
+    }
+    JRequest::setVar("group_id", $group_id);
     $model->storeConfig();
 
     $msg = "Updated group config!";
-    $link = $this->linkbase."&view=group&group_id=".JRequest::getVar("group_id");
+    $link = $this->linkbase."&view=group&group_id=".$group_id;
     $this->setRedirect($link, $msg);
   }
 

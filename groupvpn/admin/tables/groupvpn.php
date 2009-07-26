@@ -8,6 +8,8 @@ class TableGroupVPN extends JTable {
   var $create_time = null;
   var $last_update = null;
   var $description = null;
+  var $detailed_registration = 0;
+  var $tos = null;
 
   function TableGroupVPN(&$db) {
     parent::__construct('groupvpn', 'group_id', $db);
@@ -18,10 +20,12 @@ class TableGroupVPN extends JTable {
       return false;
     }
 
-    $db = & JFactory::getDBO();
-    $query = "SELECT group_id FROM groupvpn WHERE group_name = \"".$this->group_name."\"";
-    $db->setQuery($query);
-    $this->group_id = $db->loadResult();
+    if(is_null($this->group_id)) {
+      $db = & JFactory::getDBO();
+      $query = "SELECT group_id FROM groupvpn WHERE group_name = \"".$this->group_name."\"";
+      $db->setQuery($query);
+      $this->group_id = $db->loadResult();
+    }
     return true;
   }
 }

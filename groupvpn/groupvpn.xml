@@ -13,13 +13,42 @@
   <description>Groups and GroupVPN support for Joomla</description>
 
   <files folder="site">
-    <filename>views/groups/tmpl/default.php</filename>
-    <filename>views/groups/view.php</filename>
-    <filename>views/group/tmpl/default.php</filename>
-    <filename>views/group/view.php</filename>
-    <filename>models/groupvpn.php</filename>
+    <filename>private/.htaccess</filename>
     <filename>groupvpn.php</filename>
     <filename>controller.php</filename>
+    <filename>lib/utils.php</filename>
+    <filename>lib/config_generator.php</filename>
+    <filename>views/checkaccount/view.php</filename>
+    <filename>views/checkaccount/tmpl/default.php</filename>
+    <filename>views/account/view.php</filename>
+    <filename>views/account/tmpl/default.php</filename>
+    <filename>views/config/metadata.xml</filename>
+    <filename>views/config/index.html</filename>
+    <filename>views/config/view.php</filename>
+    <filename>views/config/tmpl/index.html</filename>
+    <filename>views/config/tmpl/default.php</filename>
+    <filename>views/groups/view.php</filename>
+    <filename>views/groups/tmpl/default.php</filename>
+    <filename>views/group/view.php</filename>
+    <filename>views/group/tmpl/default.php</filename>
+    <filename>models/groupvpn.php</filename>
+    <filename>utils/sign_cert.sh</filename>
+    <filename>utils/Boo.Lang.dll</filename>
+    <filename>utils/create_ca.sh</filename>
+    <filename>utils/Brunet.Security.dll</filename>
+    <filename>utils/Mono.Security.dll</filename>
+    <filename>utils/RSAPrivateKeyToDER.exe</filename>
+    <filename>utils/certhelper.exe</filename>
+    <filename>utils/Brunet.dll</filename>
+    <filename>mono/bin/MySql.Data.dll</filename>
+    <filename>mono/bin/GroupVPN.exe</filename>
+    <filename>mono/bin/CookComputing.XmlRpcV2.dll</filename>
+    <filename>mono/bin/Brunet.Security.dll</filename>
+    <filename>mono/bin/Brunet.dll</filename>
+    <filename>mono/bin/GroupVPN.dll</filename>
+    <filename>mono/GroupVPN.cs</filename>
+    <filename>mono/compile.sh</filename>
+    <filename>mono/web.config</filename>
   </files>
 
   <install>

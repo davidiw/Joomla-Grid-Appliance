@@ -1,8 +1,8 @@
 <?php
 // no direct access
 defined('_JEXEC') or die('Restricted access');
-$titles = array("Username", "Name", "E-mail", "Reason for joining");
-$values = array("username", "name", "email", "reason");
+$titles = array("Name", "E-mail");
+$values = array("name", "email");
 ?>
 
 <script type="text/javascript">
@@ -29,6 +29,18 @@ function submitTask(action) {
 
   form.submit();
 }
+
+function reviewAccount(uid) {
+  var form = document.getElementById("form");
+  var ele = document.createElement("input");
+  ele.type = "hidden";
+  ele.name = "user_id";
+  ele.value = uid;
+  form.appendChild(ele);
+  var task = document.getElementById("task");
+  task.value = "reviewAccount";
+  form.submit();
+}
 </script>
 
 <form action="index.php" method="post" id="form">
@@ -38,6 +50,7 @@ Description: <?php echo $this->group->description; ?><br />
 Members:
 <table border=1 >
   <tr>
+    <td>Username</td>
 <?php foreach($titles as $title) { ?>
     <td><?php echo $title; ?></td>
 <?php } ?>
@@ -65,6 +78,11 @@ foreach($this->members as $member) {
   }
 ?>
   <tr>
+    <td <?php if($this->admin) echo 'onclick="reviewAccount(\''.$member->user_id.'\')"' ?>>
+      <?php if($this->admin) { ?><font color="blue"><?php } ?>
+      <?php echo $member->username; ?>
+      <?php if($this->admin) { ?></font><?php } ?>
+    </td>
 <?php foreach($values as $value) { ?>
     <td><?php echo $member->$value; ?></td>
 <?php } ?>
@@ -80,8 +98,9 @@ if($member->admin) { ?>
   <tr><td>Revoke: </td><td><input type="checkbox" name="revoke[]" value="<? echo $member->user_id; ?>" /></td></tr>
 <?php
 }
-if(!$member->revoked and !$member->member and !$member->admin) { ?>
+if(!$member->revoked and !$member->member and !$member->admin and $member->request) { ?>
   <tr><td>Accept: </td><td><input type="checkbox" name="accept[]" value="<? echo $member->user_id; ?>" /></td></tr>
+  <tr><td>Deny: </td><td><input type="checkbox" name="deny[]" value="<? echo $member->user_id; ?>" /></td></tr>
 <?php
 }
   ?></table></td>
@@ -90,6 +109,7 @@ if(!$member->revoked and !$member->member and !$member->admin) { ?>
 <?php } ?>
 </table>
 
+<?php if($this->member) { ?>
 <?php if($this->admin) { ?>
   <input type="button" value="Submit changes" onclick="submitTask('manage')" />
   <input type="button" value="Delete" onclick="submitTask('deleteGroup')" />
@@ -99,4 +119,5 @@ if(!$member->revoked and !$member->member and !$member->admin) { ?>
   <input type="hidden" name="option" value="com_groupvpn" />
   <input type="hidden" id="task" name="task" value="downloadConfig" />
   <input type="button" value="Download Config" onclick="secureSubmit()" />
+<?php } ?>
 </form>

@@ -94,11 +94,24 @@ class GroupVPNModelGroupVPN extends JModel {
 
     $user =& JFactory::getUser();
     $db = & JFactory::getDBO();
-    $reason = JRequest::getVar("reason");
-    $query = "INSERT INTO groups (user_id, group_id, request, reason, secret) VALUES ".
-      "(".$user->id.", ".$groupvpn->group_id.", 1, \"".$reason."\", \"".
-      GroupVPNModelGroupVPN::getSecret()."\")";
+    $post = JRequest::get("post");
+    $secret = GroupVPNModelGroupVPN::getSecret();
+
+    if($groupvpn->detailed_registration) {
+      $query = "INSERT INTO groups (user_id, group_id, request, reason, secret,".
+        " organization, organizational_unit, country, phone, ethnicity) VALUES ".
+        "(".$user->id.", ".$groupvpn->group_id.", 1, \"".$post["reason"]."\", ".
+        "\"".$secret."\", \"".$post["organization"]."\", \"".$post["organizational_unit"]."\"".
+        ", \"".$post["country"]."\", \"".$post["phone"]."\", \"".$post["ethnicity"]."\")";
+    } else {
+      $query = "INSERT INTO groups (user_id, group_id, request, reason, secret) VALUES ".
+        "(".$user->id.", ".$groupvpn->group_id.", 1, \"".$post["reason"]."\", \"".$secret."\")";
+    }
+
     if($db->Execute($query)) {
+      GroupVPNModelGroupVPN::sendAdminNotification($user->email, $user->name,
+        $user->username, $groupvpn->group_name, $groupvpn->group_id,
+        $post["reason"], $this->getAdminEmail($groupvpn->group_id));
       return true;
     }
 
@@ -159,7 +172,7 @@ class GroupVPNModelGroupVPN extends JModel {
     $ipop = P2PConfigGenerator::defaultIPOPConfigParams();
     $ipop->Namespace = JRequest::getVar("ip_namespace");
     $secure = JRequest::getVar("secure");
-    $ipop->EndToEndSecurity = ($secure) ? "true" : "false";
+    $ipop->EndToEndSecurity = empty($secure) ? "false" : "true";
 
     $dhcp = P2PConfigGenerator::defaultDHCPConfigParams();
     $dhcp->Namespace = JRequest::getVar("ip_namespace");
@@ -174,7 +187,7 @@ class GroupVPNModelGroupVPN extends JModel {
     $db->Execute($query);
 
     $this->loadConfig();
-    return true;
+    return $groupvpn->group_id;
   }
 
   function loadConfig() {
@@ -199,10 +212,17 @@ class GroupVPNModelGroupVPN extends JModel {
     return array(unserialize($res[0]), unserialize($res[1]), unserialize($res[2]));
   }
 
-  function loadXMLConfig() {
-    $groupvpn = $this->loadGroup();
-    if(!$groupvpn) {
+  function generateXMLConfig($groupvpn = null) {
+    if(is_null($groupvpn)) {
+      $groupvpn = $this->loadGroup();
+    }
+
+    if(is_null($groupvpn)) {
       return false;
+    }
+    $user =& JFactory::getUser();
+    if(!$this->isGroupMember($groupvpn->group_id, $user->id)) {
+      JError::raiseError("Not a member of group.");
     }
 
     list($node, $ipop, $dhcp) = $this->loadConfig();
@@ -232,13 +252,11 @@ class GroupVPNModelGroupVPN extends JModel {
 
     $node->Security = "true";
 
-
     $ipop->GroupVPN = new stdClass();
     $ipop->GroupVPN->ServerURI = "https://".JURI::getInstance()->toString(array("host", "port")).
       "/components/com_groupvpn/mono/GroupVPN.rem";
     $ipop->GroupVPN->Group = $groupvpn->group_name;
 
-    $user =& JFactory::getUser();
     $ipop->GroupVPN->UserName = $user->username;
 
     $db = & JFactory::getDBO();
@@ -247,31 +265,50 @@ class GroupVPNModelGroupVPN extends JModel {
     $ipop->GroupVPN->Secret = $db->loadResult();
     $ipop->EndToEndSecurity = "true";
 
+    require_once(JPATH_SITE.DS."components".DS."com_groupvpn".DS."lib".DS."config_generator.php");
+    $nodeconfig = P2PConfigGenerator::generateNodeConfig($node);
+    $ipopconfig = P2PConfigGenerator::generateIPOPConfig($ipop);
+    $dhcpconfig = P2PConfigGenerator::generateDHCPConfig($dhcp);
+    $node->Security = null;
+    $bootstrapconfig = P2PConfigGenerator::generateNodeConfig($node);
 
-    require_once(JPATH_COMPONENT.DS."lib".DS."config_generator.php");
+    return array($nodeconfig, $ipopconfig, $dhcpconfig, $bootstrapconfig);
+  }
+
+  function loadXMLConfig() {
+    $groupvpn = $this->loadGroup();
+    if(is_null($groupvpn)) {
+      return false;
+    }
+
+    list($nodeconfig, $ipopconfig, $dhcpconfig, $bootstrapconfig) = $this->generateXMLConfig($groupvpn);
+    jimport('joomla.filesystem.file');
+    jimport('joomla.filesystem.folder');
+
     $name = rand();
     $name = md5($name);
     $config =& JFactory::getConfig();
     $path = $config->getValue('config.tmp_path').DS.$name;
 
-    require_once(JPATH_COMPONENT.DS."lib".DS."config_generator.php");
-    jimport('joomla.filesystem.file');
-    jimport('joomla.filesystem.folder');
-
     JFolder::create($path);
     $file = $path.".zip";
-    $files = array($path.DS."node.config", $path.DS."ipop.config", $path.DS."dhcp.config");
-    JFile::write($files[0], P2PConfigGenerator::generateNodeConfig($node));
-    JFile::write($files[1], P2PConfigGenerator::generateIPOPConfig($ipop));
-    JFile::write($files[2], P2PConfigGenerator::generateDHCPConfig($dhcp));
+    $node_path = $path.DS."node.config";
+    $bootstrap_path = $path.DS."bootstrap.config";
+    $ipop_path = $path.DS."ipop.config";
+    $dhcp_path = $path.DS."dhcp.config";
+
+    JFile::write($node_path, $nodeconfig);
+    JFile::write($ipop_path, $ipopconfig);
+    JFile::write($dhcp_path, $dhcpconfig);
+    JFile::write($bootstrap_path, $bootstrapconfig);
     $cacert_path = JPATH_COMPONENT.DS."data".DS.$groupvpn->group_name.DS."cacert";
     $webcert_path = JPATH_COMPONENT.DS."data".DS."webcert";
-    exec("zip -jr9 ".$file." ".$files[0]." ".$files[1]." ".$files[2].
-      " \"".$cacert_path."\" \"".$webcert_path."\"");
+    exec("zip -jr9 ".$file." ".$node_path." ".$ipop_path." ".$dhcp_path.
+      " \"".$cacert_path."\" \"".$webcert_path."\" ".$bootstrap_path);
     JFolder::delete($path);
 
     require_once(JPATH_COMPONENT.DS."lib".DS."utils.php");
-    Utils::transferFile($file);
+    Utils::transferFile($file, 'config.zip');
     JFile::delete($file);
     return true;
   }
@@ -379,6 +416,7 @@ class GroupVPNModelGroupVPN extends JModel {
 
   function manageGroup() {
     $group_id = JRequest::getVar("group_id");
+    $group_name = $this->loadGroup()->group_name;
     if(!$this->isAdmin($group_id)) {
       JError::raiseError(403, JText::_('Access Forbidden'));
     }
@@ -389,7 +427,7 @@ class GroupVPNModelGroupVPN extends JModel {
       $line = implode($value, ", user_id = ");
       $line = "user_id = ".$line;
       $query = "UPDATE groups SET admin = 1 WHERE group_id = ".$group_id.
-        " AND ".$line;
+        " AND ".$line." AND revoked = 0 AND member = 1";
       $db->Execute($query);
     }
 
@@ -398,21 +436,29 @@ class GroupVPNModelGroupVPN extends JModel {
       $line = implode($value, ", user_id = ");
       $line = "user_id = ".$line;
       $query = "UPDATE groups SET admin = 0 WHERE group_id = ".$group_id.
-        " AND ".$line;
+        " AND ".$line." AND revoked = 0 AND member = 1";
       $db->Execute($query);
     }
 
     $value = JRequest::getVar("accept");
     if($value) {
+      foreach($value as $uid) {
+        $user =& JFactory::getUser($uid);
+        GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, true);
+      }
       $line = implode($value, ", user_id = ");
       $line = "user_id = ".$line;
       $query = "UPDATE groups SET member = 1, request = 0 WHERE group_id = ".
-        $group_id." AND ".$line;
+        $group_id." AND ".$line." AND revoked = 0 AND request = 1";
       $db->Execute($query);
     }
 
     $value = JRequest::getVar("deny");
     if($value) {
+      foreach($value as $uid) {
+        $user =& JFactory::getUser($uid);
+        GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, false);
+      }
       $line = implode($value, ", user_id = ");
       $line = "user_id = ".$line;
       $query = "UPDATE groups SET request = 0 WHERE group_id = ".$group_id.
@@ -422,6 +468,10 @@ class GroupVPNModelGroupVPN extends JModel {
 
     $value = JRequest::getVar("revoke");
     if($value) {
+      foreach($value as $uid) {
+        $user =& JFactory::getUser($uid);
+        GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, true);
+      }
       $line = implode($value, ", user_id = ");
       $line = "user_id = ".$line;
       $query = "UPDATE groups SET revoked = 1, admin = 0, member = 0 ".
@@ -467,6 +517,10 @@ class GroupVPNModelGroupVPN extends JModel {
     return false;
   }
 
+  function groupAvailable() {
+    return JRequest::getVar("group_id");
+  }
+
   // Returns 1 if admin, 0 or false otherwise
   function isAdmin($group_id = null, $user_id = null) {
     if(empty($group_id)) {
@@ -498,5 +552,83 @@ class GroupVPNModelGroupVPN extends JModel {
       $i++;
     }
     return $str;
+  }
+
+  static function isGroupMember($group_id = null, $user_id = null) {
+    if(empty($group_id)) {
+      $group_id = JRequest::getVar("group_id");
+    }
+    if(empty($user_id)) {
+      $user =& JFactory::getUser();
+      $user_id =  $user->id;
+    }
+
+    $db = & JFactory::getDBO();
+    $query = "SELECT member FROM groups WHERE group_id = ".$group_id." and user_id = ".$user_id;
+    $db->setQuery($query);
+    return $db->loadResult();
+  }
+
+  function getUserInfo() {
+    $user_id = JRequest::getVar("user_id");
+    $group_id = JRequest::getVar("group_id");
+    $query = "SELECT t1.*, t2.name, t2.username, t2.email ".
+      "FROM groups AS t1 JOIN #__users AS t2 ON t2.id=t1.user_id ".
+      "WHERE t1.user_id = ".$user_id." and t1.group_id = ".$group_id;
+    $res = $this->_getList($query);
+    if(count($res) == 1) {
+      $res = $res[0];
+    } else {
+      $res = null;
+    }
+    return $res;
+  }
+
+  function getAdminEmail($group_id) {
+    $db    =& JFactory::getDBO();
+    $query = 'SELECT email FROM #__users WHERE id IN '.
+      '(SELECT user_id FROM groups WHERE admin = 1 and group_id = '.$group_id.')';
+    $db->setQuery($query);
+    return $db->loadResultArray();
+  }
+
+  static function sendAdminNotification($email, $name, $username, $group, $group_id, $reason, $admin_emails) {
+    $config    = &JFactory::getConfig();
+    $sitename  = $config->getValue('sitename');
+
+    // Set the e-mail parameters
+    $mailfrom    = $config->getValue('mailfrom');
+    $fromname  = $config->getValue('fromname');
+    $subject  = $group.' Registrant at '.$sitename;
+    $body = "A new user has applied for ".$group." access: \n\n";
+    $body .= "Name - ".$name."\n";
+    $body .= "e-mail - ".$email."\n";
+    $body .= "Username - ".$username."\n";
+    $body .= "Reason - ".$reason."\n\n";
+    $body .= "Please log into the ".$group_name." Group interface to approve or deny access.";
+
+    foreach($admin_emails as $admin_email) {
+      JUtility::sendMail($mailfrom, $fromname, $admin_email, $subject, $body);
+    }
+  }
+
+  static function sendUserNotification($email, $name, $group, $allowed) {
+    $config    = &JFactory::getConfig();
+    $sitename  = $config->getValue('sitename');
+
+    // Set the e-mail parameters
+    $mailfrom    = $config->getValue('mailfrom');
+    $fromname  = $config->getValue('fromname');
+    $subject  = 'Response to your '.$group.' Group registration at '.$sitename;
+    $body = "Dear ".$name.",\n\n";
+    $body .= "Your request into ".$group." has been: ";
+    if($allowed) {
+      $body .= "accepted, you can now download configuration data from the group.";
+    } else {
+      $body .= "denied.  Please contact one of the group administrators for more";
+      $body .= "information";
+    }
+
+    JUtility::sendMail($mailfrom, $fromname, $email, $subject, $body);
   }
 }

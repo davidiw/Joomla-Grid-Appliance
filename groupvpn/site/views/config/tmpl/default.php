@@ -27,6 +27,32 @@ function SetP2PPool() {
 
 <form action="index2.php" method="post" id="form">
   <table>
+    <tbody>
+      <tr>
+        <td>Group name:</td>
+        <td>
+<?php if($this->group->group_id) {
+  echo $this->group->group_name;
+} else {
+?>
+          <input type="text" name="group_name"/>
+<?php } ?>
+        </td>
+      </tr>
+      <tr>
+        <td>Group description:</td>
+        <td><textarea cols="50" rows="2" name="description"><?php echo $this->group->description; ?></textarea></td>
+      </tr>
+      <tr>
+        <td>Require detailed registration:</td>
+        <td><input type="checkbox" name="detailed_registration" value="1" <?php
+          if($this->group->detailed_registration) { ?>checked=""<?php } ?>/></td>
+      </tr>
+      <tr>
+        <td>Terms of service (empty implies no terms of service):</td>
+        <td><textarea cols="50" rows="10" name="tos"><?php echo $this->group->tos; ?></textarea></td>
+      </tr>
+    </tbody>
 <?php if($this->pools) { ?>
     <tbody>
       <tr>
@@ -49,7 +75,7 @@ function SetP2PPool() {
       </tr>
       <tr>
         <td>Line delimited list of RemoteTAs:</td>
-        <td><textarea cols="50" rows="10" name="nodes"><?php echo implode($this->node->RemoteTAs, "\n"); ?></textarea></td>
+        <td><textarea cols="50" rows="10" name="nodes"><?php if($this->node) echo implode($this->node->RemoteTAs, "\n"); ?></textarea></td>
       </tr>
     </tbody>
     <tbody>
@@ -68,7 +94,7 @@ function SetP2PPool() {
       <tr>
         <td>End to End Security:</td>
         <td><input type="checkbox" name="secure" value="true" <?php
-          if($this->ipop->EndToEndSecurity) { ?>checked=""<?php } ?> /></td>
+          if($this->ipop->EndToEndSecurity == "true") { ?>checked=""<?php } ?> /></td>
       </tr>
     </tbody>
   </table>

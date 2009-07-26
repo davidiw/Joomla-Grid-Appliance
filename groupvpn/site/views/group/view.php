@@ -11,6 +11,7 @@ class GroupVPNViewGroup extends JView {
     $group = $model->loadGroup();
     $this->assignRef('members', $members);
     $this->assignRef('group', $group);
+    $this->assignRef('member', GroupVPNModelGroupVPN::isGroupMember($group->group_id));
     $this->assign('admin', $model->isAdmin());
     parent::display($tpl);
   }
