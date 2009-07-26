@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/component-install.dtd">
+<install type="component" version="1.5.0">
+  <name>GroupVPN</name>
+  <!-- The following elements are optional and free of formatting conttraints -->
+  <creationDate>2009 06 05</creationDate>
+  <author>David Wolinsky</author>
+  <authorEmail>davidiw@ufl.edu</authorEmail>
+  <authorUrl>http://www.grid-appliance.org</authorUrl>
+  <copyright>2009</copyright>
+  <license>GPLv2</license>
+  <version>.01</version>
+  <description>Groups and GroupVPN support for Joomla</description>
+
+  <files folder="site">
+    <filename>views/groups/tmpl/default.php</filename>
+    <filename>views/groups/view.php</filename>
+    <filename>views/group/tmpl/default.php</filename>
+    <filename>views/group/view.php</filename>
+    <filename>models/groupvpn.php</filename>
+    <filename>groupvpn.php</filename>
+    <filename>controller.php</filename>
+  </files>
+
+  <install>
+    <sql>
+      <file charset="utf8" driver="mysql">install.sql</file>
+    </sql>
+  </install>
+
+  <uninstall>
+    <sql>
+      <file charset="utf8" driver="mysql">uninstall.sql</file>
+    </sql>
+  </uninstall>  
+
+  <administration>
+    <menu>GroupVPN</menu>
+    <files folder="admin">
+      <filename>install.sql</filename>
+      <filename>uninstall.sql</filename>
+      <filename>tables/groupvpn.php</filename>
+    </files>    
+  </administration>
+</install>
