@@ -72,9 +72,6 @@ class GroupAppliancesController extends JController
   function downloadFloppy() {
     $model =& $this->getModel("GroupAppliances");
     $model->downloadFloppy();
-//    $model->loadXMLConfig();
-
-//    $link = JRoute::_($this->linkbase."&view=group&group_id=".JRequest::getVar("group_id"), -1);
-//    $this->setRedirect($link, $msg);
+//    $this->setRedirect($this->linkbase."&view=group&ga_id=".JRequest::getVar("ga_id"));
   }
 }

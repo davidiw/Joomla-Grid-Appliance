@@ -6,6 +6,10 @@ jimport('joomla.application.component.view');
 
 class GroupAppliancesViewGroups extends JView {
   function display($tpl = null) {
+    $document =& JFactory::getDocument();
+    $document->addScript("includes/js/mootools.js");
+    $document->addScript("components/com_p2ppool/scripts/javascript/sorttable.js");
+
     $model =& $this->getModel();
     $this->assignRef('my_groups', $model->loadMyGroupInformation());
     $this->assignRef('groups', $model->loadGroups());

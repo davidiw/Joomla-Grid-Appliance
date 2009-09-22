@@ -290,8 +290,8 @@ class GroupAppliancesModelGroupAppliances extends JModel {
     $db = & JFactory::getDBO();
     $value = JRequest::getVar("promote");
     if($value) {
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE ".$this->users_db." SET admin = 1 WHERE ".$this->group_id.
         " = ".$group_id." AND ".$line." AND revoked = 0 AND member = 1";
       $db->Execute($query);
@@ -299,8 +299,8 @@ class GroupAppliancesModelGroupAppliances extends JModel {
 
     $value = JRequest::getVar("demote");
     if($value) {
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE ".$this->users_db." SET admin = 0 WHERE ".$this->group_id.
         " = ".$group_id." AND ".$line." AND revoked = 0 AND member = 1";
       $db->Execute($query);
@@ -312,8 +312,8 @@ class GroupAppliancesModelGroupAppliances extends JModel {
         $user =& JFactory::getUser($uid);
         GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, true);
       }
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE ".$this->users_db." SET member = 1, request = 0 WHERE ".
         $this->group_id." = ".$group_id." AND ".$line." AND revoked = 0 AND request = 1";
       $db->Execute($query);
@@ -325,8 +325,8 @@ class GroupAppliancesModelGroupAppliances extends JModel {
         $user =& JFactory::getUser($uid);
         GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, false);
       }
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE ".$this->users_db." SET request = 0 WHERE ".$this->group_id.
         " = ".$group_id." AND ".$line;
       $db->Execute($query);
@@ -338,8 +338,8 @@ class GroupAppliancesModelGroupAppliances extends JModel {
         $user =& JFactory::getUser($uid);
         GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, true);
       }
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE ".$this->users_db." SET revoked = 1, admin = 0, member = 0, request = 0".
        " WHERE ".$this->group_id." = ".$group_id." AND ".$line;
       $db->Execute($query);
@@ -388,11 +388,18 @@ class GroupAppliancesModelGroupAppliances extends JModel {
 
   function isGroupMember($group_id = null, $user_id = null) {
     if(empty($group_id)) {
-      $group_id = JRequest::getVar($this->ga_id);
+      $group_id = JRequest::getVar($this->group_id);
     }
+    if(empty($group_id)) {
+      return false;
+    }
+
     if(empty($user_id)) {
       $user =& JFactory::getUser();
       $user_id =  $user->id;
+    }
+    if(empty($user_id)) {
+      return false;
     }
 
     $db = & JFactory::getDBO();
@@ -421,13 +428,17 @@ class GroupAppliancesModelGroupAppliances extends JModel {
   function downloadFloppy() {
     $group = $this->loadGroup();
     $this->isGroupMember($group->ga_id);
+
+    // Get GroupVPN info
     $groupvpn_model = new GroupVPNModelGroupVPN();
     $groupvpn = $groupvpn_model->loadGroup();
     if(!$groupvpn) {
       JError::raiseError("No such group.");
     }
 
-    list($nodeconfig, $ipopconfig, $dhcpconfig, $bootstrapconfig) = $groupvpn_model->generateXMLConfig();
+    $zipfile = $groupvpn_model->generateZipFile();
+
+    // Prep the floppy
     jimport('joomla.filesystem.file');
     jimport('joomla.filesystem.folder');
 
@@ -438,6 +449,7 @@ class GroupAppliancesModelGroupAppliances extends JModel {
 
     JFolder::create($path);
     $empty_floppy = JPATH_COMPONENT.DS."data".DS."empty_floppy";
+
     $image = $path.DS."floppy.img";
     JFile::copy($empty_floppy, $image);
     $floppy = $path.DS."floppy";
@@ -445,22 +457,28 @@ class GroupAppliancesModelGroupAppliances extends JModel {
     $archive = $path.DS."floppy.zip";
 
     $groupvpn_path = JPATH_SITE.DS."components".DS."com_groupvpn".DS;
-    $cacert_path = $groupvpn_path."data".DS.$groupvpn->group_name.DS."cacert";
-    $webcert_path = $groupvpn_path."data".DS."webcert";
-
+    // Start creating the floppy
     exec("/usr/local/bin/ext2fuse ".$image." ".$floppy." &> /dev/null &");
+    // Done with groupvpn
+    JFile::move($zipfile, $floppy.DS."groupvpn.zip");
+    // Prep the user config
+    $user =& JFactory::getUser();
+    $config = "MACHINE_TYPE=".JRequest::getVar("floppy_type")."\n".
+      "CONDOR_GROUP=\"".$group->group_name."\"\n".
+      "CONDOR_USER=\"".$user->username."\"\n".
+      "UPDATE_URL=http://www.grid-appliance.org/files/grid_appliance/updates";
+    JFile::write($floppy.DS."group_appliance.config", $config);
 
-    JFile::copy($cacert_path, $floppy.DS."cacert");
-    JFile::write($floppy.DS."node.config", $nodeconfig);
-    JFile::write($floppy.DS."ipop.config", $ipopconfig);
-    JFile::write($floppy.DS."dhcp.config", $dhcpconfig);
-    JFile::write($floppy.DS."bootstrap.config", $bootstrapconfig);
-    JFile::write($floppy.DS."type", JRequest::getVar("floppy_type"));
-    JFile::copy($cacert_path, $floppy.DS."cacert");
-    JFile::copy($webcert_path, $floppy.DS."webcert");
+    if(JRequest::getVar("arch") == "x64") {
+      exec("sed -i 's/initramfs/initramfs-x64/' ".$floppy.DS."grub".DS."menu.lst");
+      exec("sed -i 's/2\.6\.25\.3/2\.6\.25\.3-x64/' ".$floppy.DS."grub".DS."menu.lst");
+    }
 
     exec("chown -R root:root ".$floppy);
     exec("fusermount -u ".$floppy);
+    // Wait for the ext2fuse to end so we don't corrupt files!
+    exec("fg");
+    exec("sleep 1");
     exec("zip -jr9 ".$archive." ".$image);
     require_once(JPATH_SITE.DS."components".DS."com_groupvpn".DS."lib".DS."utils.php");
     Utils::transferFile($archive, "floppy.zip");

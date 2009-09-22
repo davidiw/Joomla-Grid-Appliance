@@ -42,19 +42,28 @@ function action(task, group) {
 }
 </script>
 
+<style type="text/css">
+table.sortable thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}
+</style>
+
 <form action="index.php" method="post" id="form">
 <input type="hidden" name="option" value="com_groupappliances" />
 </form>
 
 <?php if($this->groups) { ?>
-<table border=1>
+<table border=1 class="sortable">
   <tr>
-    <td>Group</td>
-    <td>Description</td>
-    <td>GroupVPN</td>
-    <td>Reason for joining</td>
-    <td>State</td>
-    <td>Action</td>
+    <th>Group</th>
+    <th>Description</th>
+    <th>GroupVPN</th>
+    <th>Reason for joining</th>
+    <th>State</th>
+    <th>Action</th>
   </tr>
 <?php
 if($this->my_groups) {
