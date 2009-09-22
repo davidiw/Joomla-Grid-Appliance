@@ -64,7 +64,11 @@ def logger_std_out(text):
 
 class Remoter:
   def __init__(self, action, nodes = None, username = "", path_to_files = "", \
-    update_callback = False, ssh_key=None, install_path = "", pool = "", logger = logger_std_out):
+    update_callback = False, ssh_key=None, install_path = "", pool = "", \
+    logger = logger_std_out, namespace = "default", setup_file = ""):
+
+    self.setup_file = setup_file
+    self.namespace = namespace
     self.logger = logger
     self.data_path = sys.path[0] + os.sep + ".." + os.sep + ".." + os.sep + "data" + os.sep + pool + os.sep
     os.chdir(self.data_path)
@@ -106,6 +110,8 @@ class Remoter:
     self.update_callback = update_callback
     self.install_path = install_path
     self.pool = pool
+    os.system("md5sum %s | awk '{print $1}' > %s.md5sum" % (self.path_to_files, self.path_to_files))
+    self.md5sum = open(self.path_to_files + ".md5sum").read()
 
     ssh_ops = "-o StrictHostKeyChecking=no -o HostbasedAuthentication=no " + \
         "-o CheckHostIP=no -o ConnectTimeout=10 -o ServerAliveInterval=30 " + \
@@ -169,65 +175,56 @@ class Remoter:
   # check determines whether or not to check to see if software is already
   #   running and not install if it is.
   def node_install(self, node, check):
+    cmd = "%s %s %s@%s:/home/%s/p2pnode.sh &> /dev/null" % (self.base_scp_cmd, \
+        self.setup_file, self.username, node, self.username)
+    os.system(cmd)
+
     base_ssh = self.base_ssh_cmd + node + " "
     if check:
-      skip = True
-      try:
         # This prints something if all is good ending this install attempt
-        ssh_cmd("%s bash %s/node/check.sh" % (base_ssh, self.install_path), False)
-      except:
-        skip = False
+      res = ssh_cmd("%s bash /home/%s/p2pnode.sh check %s %s %s" % (base_ssh, \
+          self.username, self.install_path, self.namespace, self.md5sum), self.logger)
 
-      if skip:
+      if res == "" or res != "Failed!":
         self.logger(node + " no state change...")
         return
 
-    try:
-      # this helps us leave early in case the node is unaccessible
-      ssh_cmd("%s bash %s /node/clean.sh" % (base_ssh, self.install_path))
-      ssh_cmd("%s rm -rf %s/node*" % (base_ssh, self.install_path), False)
-      ssh_cmd("%s mkdir -p %s" % (base_ssh, self.install_path))
-      cmd = "%s %s %s@%s:%s/node.tgz &> /dev/null" % (self.base_scp_cmd, \
-          self.path_to_files, self.username, node, self.install_path)
-      os.system(cmd)
-      ssh_cmd("%s tar --overwrite --overwrite-dir -zxf %s/node.tgz -C %s" % \
-          (base_ssh, self.install_path, self.install_path))
-      ssh_cmd("%s bash %s/node/clean.sh" % (base_ssh, self.install_path))
+    # this helps us leave early in case the node is unaccessible
+    cmd = "%s %s %s@%s:/home/%s/%s.tgz &> /dev/null" % (self.base_scp_cmd, \
+        self.path_to_files, self.username, node, self.username, self.pool)
+    os.system(cmd)
+    res = ssh_cmd("%s bash /home/%s/p2pnode.sh setup %s %s" % (base_ssh, \
+        self.username, self.install_path, self.pool), self.logger)
 
-  # this won't end unless we force it to!  It should never take more than 20
-  # seconds for this to run... or something bad happened.
-      cmd = "%s bash %s/node/start_node.sh &> /dev/null" % (base_ssh, self.install_path)
-      pid = os.spawnvp(os.P_NOWAIT, 'ssh', cmd.split(' '))
-      time.sleep(20)
-      if os.waitpid(pid, os.P_NOWAIT) == (0, 0):
-        os.kill(pid, signal.SIGKILL)
+    if res == "":
       self.logger(node + " done!")
       if self.update_callback:
         self.update_callback(node, 1)
-    except:
-      traceback.print_exc(file=sys.stdout)
-      self.logger(node + " failed!")
+    else:
+      self.logger(node + " failed!" + " " + res)
       if self.update_callback:
         self.update_callback(node, 0)
     return
 
   def uninstall_node(self, node):
+    cmd = "%s %s %s@%s:/home/%s/p2pnode.sh &> /dev/null" % (self.base_scp_cmd, \
+        self.setup_file, self.username, node, self.username)
+    os.system(cmd)
+
     base_ssh = self.base_ssh_cmd + node + " "
-    try:
-      # this helps us leave early in case the node is unaccessible
-      ssh_cmd("%s bash %s/node/clean.sh" % (base_ssh, self.install_path))
-      ssh_cmd("%s rm -rf %s/node*" % (base_ssh, self.install_path))
+    res = ssh_cmd("%s bash /home/%s/p2pnode.sh remove %s" % (base_ssh, \
+        self.username, self.install_path), self.logger)
+
+    if res == "":
       if self.update_callback:
         self.update_callback(node, 0)
       else:
         self.logger(node + " done!")
-    except:
-      #traceback.print_exc(file=sys.stdout)
+    else:
       if self.update_callback:
         self.update_callback(node, 1)
       else:
         self.logger(node + " failed!")
-      return
 
   def gather_logs(self, node):
     os.system("mkdir logs/" + node)
@@ -249,11 +246,11 @@ class Remoter:
     
 # This runs the ssh command monitoring it for any possible failures and raises
 # an the KeyboardInterrupt if there is one.
-def ssh_cmd(cmd, redirect=True, logger = logger_std_out):
-  if redirect:
-    cmd += " &> /dev/null"
-  p = subprocess.Popen(cmd.split(' '), stdin=open("/dev/null"), \
+def ssh_cmd(cmd, logger = logger_std_out):
+  cmd = cmd + " 0<&-"
+  p = subprocess.Popen(cmd.split(' '), stdin=subprocess.PIPE, \
       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  p.stdin.close()
   os.waitpid(p.pid, 0)
   err = p.stderr.read()
   out = p.stdout.read()
@@ -268,11 +265,11 @@ def ssh_cmd(cmd, redirect=True, logger = logger_std_out):
   err = err.strip()
   out = out.strip()
 
-  if err != '' or out != '':
-  #  logger(cmd)
-  #  logger("Err: " + err + " :Err")
-  #  logger("Out: " + out + " :Out")
-    raise KeyboardInterrupt
+#  logger("err: " + err)
+#  logger("out: " + out)
+  if err != '':
+    return err
+  return out
 
 if __name__ == "__main__":
   main()

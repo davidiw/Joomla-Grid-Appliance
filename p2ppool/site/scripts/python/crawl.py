@@ -179,7 +179,7 @@ def crawl(port = 10000, logger = null_logger, debug = False):
         info['type'] = res['type']
         if info['type'] == "IpopNode":
           try:
-            info['virtual_ip'] = res['Virtual IP']
+            info['virtual_ip'] = res['VirtualIPs'][0]
           except:
             info['virtual_ip'] = ""
           info['namespace'] = res['IpopNamespace']

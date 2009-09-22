@@ -118,6 +118,13 @@ class P2PPoolModelSystem extends JModel {
       $output[] = "    <Port>".$this->pool->rpcport."</Port>";
       $output[] = "  </XmlRpcManager>";
     }
+
+    $output[] = "  <NCService>";
+    $output[] = "    <Enabled>true</Enabled>";
+    $output[] = "    <OptimizeShortcuts>true</OptimizeShortcuts>";
+    $output[] = "    <Checkpointing>true</Checkpointing>";
+    $output[] = "  </NCService>";
+
     $output[] = "</NodeConfig>";
     return implode("\n", $output);
   }

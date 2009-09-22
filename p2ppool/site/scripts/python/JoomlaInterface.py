@@ -53,15 +53,18 @@ class JoomlaRemoter:
     self.ssh_key = base_path + "private" + os.sep + pool + os.sep + "ssh_key"
     self.path_to_files = base_path + "data" + os.sep + pool + os.sep + "install.tgz"
     self.log_dir =  base_path + "data" + os.sep + pool + os.sep + task + ".log"
+    self.setup_file = base_path + "data" + os.sep + "p2pnode.sh"
     os.chdir(base_path + "data")
 
     db = self.jdb.get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT user_name, install_path, mkbundle FROM p2ppools WHERE pool = \"" + self.pool + "\"")
+    cursor.execute("SELECT user_name, install_path, mkbundle, namespace " + \
+        "FROM p2ppools WHERE pool = \"" + self.pool + "\"")
     res = cursor.fetchone()
     self.ssh_username = res[0]
     self.install_path = res[1]
     self.mkbundle = str(res[2]) == "1"
+    self.namespace = res[3]
     cursor.close()
     db.close()
 
@@ -103,7 +106,7 @@ class JoomlaRemoter:
       plab = Remoter.Remoter(self.task, nodes, username = self.ssh_username, \
         path_to_files = self.path_to_files, update_callback = self.install_callback, \
         ssh_key = self.ssh_key, install_path = self.install_path, pool = self.pool, \
-        logger = self.output)
+        logger = self.output, namespace = self.namespace, setup_file = self.setup_file)
       plab.run()
 
   def cleanup(self):
