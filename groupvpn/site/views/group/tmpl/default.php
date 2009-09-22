@@ -43,20 +43,29 @@ function reviewAccount(uid) {
 }
 </script>
 
+<style type="text/css">
+table.sortable thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}
+</style>
+
 <form action="index.php" method="post" id="form">
 
 Group name: <?php echo $this->group->group_name; ?><br/>
 Description: <?php echo $this->group->description; ?><br />
 Members:
-<table border=1 >
+<table border=1 class="sortable">
   <tr>
-    <td>Username</td>
+    <th>Username</th>
 <?php foreach($titles as $title) { ?>
-    <td><?php echo $title; ?></td>
+    <th><?php echo $title; ?></th>
 <?php } ?>
-    <td>Status</td>
+    <th>Status</th>
 <?php if($this->admin) { ?>
-    <td>Action</td>
+    <th>Action</th>
 <?php } ?>
   </tr>
 <?php
@@ -90,17 +99,23 @@ foreach($this->members as $member) {
 <?php if($this->admin) { ?>
     <td><table><?php
 if($member->admin) { ?>
-  <tr><td>Demote: </td><td><input type="checkbox" name="demote[]" value="<? echo $member->user_id; ?>" /></td></tr>
-  <tr><td>Revoke: </td><td><input type="checkbox" name="revoke[]" value="<? echo $member->user_id; ?>" /></td></tr>
+  <tr>
+    <td>Demote: </td><td><input type="checkbox" name="demote[]" value="<? echo $member->user_id; ?>" /></td>
+    <td>Revoke: </td><td><input type="checkbox" name="revoke[]" value="<? echo $member->user_id; ?>" /></td>
+  </tr>
 <?php
 } else if($member->member) { ?>
-  <tr><td>Promote: </td><td><input type="checkbox" name="promote[]" value="<? echo $member->user_id; ?>" /></td></tr>
-  <tr><td>Revoke: </td><td><input type="checkbox" name="revoke[]" value="<? echo $member->user_id; ?>" /></td></tr>
+  <tr>
+    <td>Promote: </td><td><input type="checkbox" name="promote[]" value="<? echo $member->user_id; ?>" /></td>
+    <td>Revoke: </td><td><input type="checkbox" name="revoke[]" value="<? echo $member->user_id; ?>" /></td>
+  </tr>
 <?php
 }
 if(!$member->revoked and !$member->member and !$member->admin and $member->request) { ?>
-  <tr><td>Accept: </td><td><input type="checkbox" name="accept[]" value="<? echo $member->user_id; ?>" /></td></tr>
-  <tr><td>Deny: </td><td><input type="checkbox" name="deny[]" value="<? echo $member->user_id; ?>" /></td></tr>
+  <tr>
+    <td>Accept: </td><td><input type="checkbox" name="accept[]" value="<? echo $member->user_id; ?>" /></td>
+    <td>Deny: </td><td><input type="checkbox" name="deny[]" value="<? echo $member->user_id; ?>" /></td>
+  </tr>
 <?php
 }
   ?></table></td>

@@ -6,6 +6,10 @@ jimport('joomla.application.component.view');
 
 class GroupVPNViewGroup extends JView {
   function display($tpl = null) {
+    $document =& JFactory::getDocument();
+    $document->addScript("includes/js/mootools.js");
+    $document->addScript("components/com_p2ppool/scripts/javascript/sorttable.js");
+
     $model =& $this->getModel();
     $members = $model->loadGroupMembers();
     $group = $model->loadGroup();

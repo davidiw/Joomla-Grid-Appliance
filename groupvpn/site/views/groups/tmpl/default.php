@@ -4,7 +4,7 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 
 <script type="text/javascript">
-function addGroup(group) {
+function addGroup(group, task) {
   var form = document.getElementById("form");
 
   var group_ele = document.createElement("input");
@@ -14,20 +14,45 @@ function addGroup(group) {
 
   form.appendChild(group_ele);
 
+  var task_ele = document.createElement("input");
+  task_ele.type = "hidden";
+  task_ele.value = task;
+
+  if(task == "account") {
+    task_ele.name = "view";
+  } else {
+    task_ele.name = "task";
+  }
+
+  form.appendChild(task_ele);
+
   form.submit();
 }
 </script>
+
+<style type="text/css">
+table.sortable thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}
+</style>
 
 <form action="index.php" method="post" id="form">
 <input type="hidden" name="option" value="com_groupvpn" />
 
 <?php if($this->groups) { ?>
-<table border=1>
+<table border=1 class="sortable">
   <tr>
-    <td>Group</td>
-    <td>Description</td>
-    <td>State</td>
-    <td>Action</td>
+    <th>Group</th>
+    <th>Description</th>
+    <th>State</th>
+    <th>Action</th>
+<?php if($this->admin) { ?>
+    <th>Admin Delete</th>
+    <th>Last Activity</th>
+<?php } ?>
   </tr>
 <?php
 if($this->my_groups) {
@@ -55,10 +80,14 @@ if($group->admin) {
 } ?></td>
     <td><?php
 if(!$noleave) {?>
-    <button type="submit" name="task" value="leave" onclick="addGroup(<?php echo $group->group_id; ?>)">
-      Leave
-    </button>
+    <input type="button" value="Leave" onclick="addGroup(<?php echo $group->group_id; ?>, 'leave')"/>
 <?php } ?></td>
+<?php if($this->admin) { ?>
+    <td>
+      <input type="button" value="Delete" onclick="addGroup(<?php echo $group->group_id; ?>, 'delete')"/>
+    </td>
+    <td><?php echo $group->last_update; ?></td>
+<?php } ?>
   </tr>
 <?php
   }
@@ -77,10 +106,14 @@ foreach($this->groups as $group) {
     <td><?php echo $group->description; ?></td>
     <td />
     <td>
-      <button type="submit" name="view" value="account" onclick="addGroup(<?php echo $group->group_id; ?>)">
-        Join
-      </button>
+      <input type="button" value="Join" onclick="addGroup(<?php echo $group->group_id; ?>, 'account')" />
     </td>
+<?php if($this->admin) { ?>
+    <td>
+      <input type="button" value="Delete" onclick="addGroup(<?php echo $group->group_id; ?>, 'delete')" />
+    </td>
+    <td><?php echo $group->last_update; ?></td>
+<?php } ?>
   </tr>
 <?php } ?>
 </table>

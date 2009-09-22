@@ -9,7 +9,7 @@ class GroupVPNModelGroupVPN extends JModel {
   // Public
   static function loadGroups() {
     $db = & JFactory::getDBO();
-    $query = "SELECT group_id, group_name, description FROM groupvpn";
+    $query = "SELECT group_id, group_name, description, last_update FROM groupvpn";
     $db->setQuery($query);
     return $db->loadObjectList("group_id");
   }
@@ -79,7 +79,8 @@ class GroupVPNModelGroupVPN extends JModel {
   function loadMyGroupInformation() {
     $user =& JFactory::getUser();
     $db = & JFactory::getDBO();
-    $query = "SELECT group_id, reason, request, member, admin, revoked FROM groups ".
+    $query = "SELECT groups.group_id, reason, request, member, admin, revoked, last_update FROM groups ".
+      "LEFT JOIN groupvpn on (groups.group_id = groupvpn.group_id) ".
       "WHERE user_id = ".$user->id;
     $db->setQuery($query);
     return $db->loadObjectList("group_id");
@@ -227,7 +228,7 @@ class GroupVPNModelGroupVPN extends JModel {
 
     list($node, $ipop, $dhcp) = $this->loadConfig();
 
-    if($node->p2ppool_id != "No") {
+    if(isset($node->p2ppool_id)) {
       $path = JPATH_SITE.DS."components".DS."com_p2ppool".DS."models".DS."pool.php";
       require_once($path);
       $path = JPATH_ADMINISTRATOR.DS."components".DS."com_p2ppool".DS."tables".DS."p2ppools.php";
@@ -276,6 +277,14 @@ class GroupVPNModelGroupVPN extends JModel {
   }
 
   function loadXMLConfig() {
+    $file = $this->generateZipFile();
+    require_once(JPATH_COMPONENT.DS."lib".DS."utils.php");
+    Utils::transferFile($file, 'config.zip');
+    JFile::delete($file);
+    return true;
+  }
+
+  function generateZipFile() {
     $groupvpn = $this->loadGroup();
     if(is_null($groupvpn)) {
       return false;
@@ -301,16 +310,12 @@ class GroupVPNModelGroupVPN extends JModel {
     JFile::write($ipop_path, $ipopconfig);
     JFile::write($dhcp_path, $dhcpconfig);
     JFile::write($bootstrap_path, $bootstrapconfig);
-    $cacert_path = JPATH_COMPONENT.DS."data".DS.$groupvpn->group_name.DS."cacert";
-    $webcert_path = JPATH_COMPONENT.DS."data".DS."webcert";
+    $cacert_path = JPATH_SITE.DS."components".DS."com_groupvpn".DS."data".DS.$groupvpn->group_name.DS."cacert";
+    $webcert_path = JPATH_SITE.DS."components".DS."com_groupvpn".DS."data".DS."webcert";
     exec("zip -jr9 ".$file." ".$node_path." ".$ipop_path." ".$dhcp_path.
       " \"".$cacert_path."\" \"".$webcert_path."\" ".$bootstrap_path);
     JFolder::delete($path);
-
-    require_once(JPATH_COMPONENT.DS."lib".DS."utils.php");
-    Utils::transferFile($file, 'config.zip');
-    JFile::delete($file);
-    return true;
+    return $file;
   }
 
   function getP2PPools() {
@@ -424,8 +429,8 @@ class GroupVPNModelGroupVPN extends JModel {
     $db = & JFactory::getDBO();
     $value = JRequest::getVar("promote");
     if($value) {
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE groups SET admin = 1 WHERE group_id = ".$group_id.
         " AND ".$line." AND revoked = 0 AND member = 1";
       $db->Execute($query);
@@ -433,8 +438,8 @@ class GroupVPNModelGroupVPN extends JModel {
 
     $value = JRequest::getVar("demote");
     if($value) {
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE groups SET admin = 0 WHERE group_id = ".$group_id.
         " AND ".$line." AND revoked = 0 AND member = 1";
       $db->Execute($query);
@@ -446,8 +451,8 @@ class GroupVPNModelGroupVPN extends JModel {
         $user =& JFactory::getUser($uid);
         GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, true);
       }
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE groups SET member = 1, request = 0 WHERE group_id = ".
         $group_id." AND ".$line." AND revoked = 0 AND request = 1";
       $db->Execute($query);
@@ -459,8 +464,8 @@ class GroupVPNModelGroupVPN extends JModel {
         $user =& JFactory::getUser($uid);
         GroupVPNModelGroupVPN::sendUserNotification($user->email, $user->name, $group_name, false);
       }
-      $line = implode($value, ", user_id = ");
-      $line = "user_id = ".$line;
+      $line = implode($value, " or user_id = ");
+      $line = "( user_id = ".$line." )";
       $query = "UPDATE groups SET request = 0 WHERE group_id = ".$group_id.
         " AND ".$line;
       $db->Execute($query);
@@ -487,8 +492,10 @@ class GroupVPNModelGroupVPN extends JModel {
     }
 
     $user =& JFactory::getUser();
-    if(!$this->isAdmin($groupvpn->group_id, $user->id)) {
-      JError::raiseError(403, JText::_('Access Forbidden'));
+    if(strtolower($user->usertype) != "super administrator") {
+      if(!$this->isAdmin($groupvpn->group_id, $user->id)) {
+        JError::raiseError(403, JText::_('Access Forbidden'));
+      }
     }
 
     return $this->groupCleanUp($groupvpn);

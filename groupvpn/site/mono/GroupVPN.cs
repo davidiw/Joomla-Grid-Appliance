@@ -75,6 +75,12 @@ class GroupVPNServer : XmlRpcService {
     }
 
     reader.Close();
+
+    sql = "UPDATE groupvpn SET last_update = CURRENT_TIMESTAMP WHERE group_name = \"" + group + "\"";
+    dbcmd.CommandText = sql;
+    reader = dbcmd.ExecuteReader();
+    reader.Close();
+
     dbcmd.Dispose();
     dbcon.Close();
 

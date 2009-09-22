@@ -9,6 +9,7 @@ class Utils {
     header('Content-Disposition: attachment; filename='.$filename);
     ob_end_flush();
     Utils::readfileChunked($file);
+    exit;
   }
 
   static function readfileChunked($filename,$retbytes=true) {
