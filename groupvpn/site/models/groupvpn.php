@@ -42,7 +42,7 @@ class GroupVPNModelGroupVPN extends JModel {
           'header' => "Content-Type: text/xml",
           'content' => $request
       )));
-      $file = file_get_contents("http://www.grid-appliance.org/components/com_groupvpn/mono/GroupVPN.rem", false, $context);
+      $file = file_get_contents("http://127.0.0.1/components/com_groupvpn/mono/GroupVPN.rem", false, $context);
       $response = xmlrpc_decode($file);
       if(xmlrpc_is_fault($response)) {
         JError::raiseError(500, JText::_("xmlrpc: $response[faultString] ($response[faultCode])"));
@@ -50,6 +50,20 @@ class GroupVPNModelGroupVPN extends JModel {
     }
 
     return $groupvpn->group_id;
+  }
+
+  static function updateRevocationList($group_name) {
+    $request = xmlrpc_encode_request("UpdateRevocationList", $group_name);
+    $context = stream_context_create(array('http' => array(
+        'method' => "POST",
+        'header' => "Content-Type: text/xml",
+        'content' => $request
+    )));
+    $file = file_get_contents("http://127.0.0.1/components/com_groupvpn/mono/GroupVPN.rem", false, $context);
+    $response = xmlrpc_decode($file);
+    if(xmlrpc_is_fault($response)) {
+      JError::raiseWarning(500, JText::_("xmlrpc: $response[faultString] ($response[faultCode])"));
+    }
   }
 
   // List of individual methods
@@ -482,6 +496,7 @@ class GroupVPNModelGroupVPN extends JModel {
       $query = "UPDATE groups SET revoked = 1, admin = 0, member = 0 ".
         "WHERE group_id = ".$group_id." AND ".$line;
       $db->Execute($query);
+      GroupVPNModelGroupVPN::updateRevocationList($group_name);
     }
   }
   

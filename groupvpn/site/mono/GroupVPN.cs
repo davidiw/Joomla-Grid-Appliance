@@ -3,6 +3,7 @@ using CookComputing.XmlRpc;
 using Mono.Security.X509;
 using MySql.Data.MySqlClient;
 using System;
+using System.Collections;
 using System.Configuration;
 using System.Data;
 using System.IO;
@@ -53,7 +54,7 @@ class GroupVPNServer : XmlRpcService {
     dbcon.Open();
     IDbCommand dbcmd = dbcon.CreateCommand();
 
-    string sql = "SELECT id, name, email FROM " + _db_prefix + "users WHERE username = \"" + username + "\"";
+    string sql = "SELECT id, email FROM " + _db_prefix + "users WHERE username = \"" + username + "\"";
     dbcmd.CommandText = sql;
     IDataReader reader = dbcmd.ExecuteReader();
     if(!reader.Read()) {
@@ -61,7 +62,6 @@ class GroupVPNServer : XmlRpcService {
     }
 
     string user_id = ((int) reader["id"]).ToString();
-    string name = (string) reader["name"];
     string email = (string) reader["email"];
     reader.Close();
 
@@ -84,6 +84,16 @@ class GroupVPNServer : XmlRpcService {
     dbcmd.Dispose();
     dbcon.Close();
 
+    CertificateMaker cm = null;
+    try {
+      cm = new CertificateMaker(certificate);
+    } catch {
+      throw new Exception("Invalid certificate request");
+    }
+
+    cm = new CertificateMaker(string.Empty, string.Empty, group, username,
+        email, cm.PublicKey, cm.NodeAddress);
+
     Random rand = new Random();
     byte[] request_id_blob = new byte[20];
     rand.NextBytes(request_id_blob);
@@ -96,7 +106,7 @@ class GroupVPNServer : XmlRpcService {
 
     string request_path = GetGroupDataPath(group) + request_id;
     using(FileStream fs = File.Open(request_path, FileMode.Create)) {
-      fs.Write(certificate, 0, certificate.Length);
+      fs.Write(cm.UnsignedData, 0, cm.UnsignedData.Length);
     }
 
     // If we don't want to verify request on the website...
@@ -211,6 +221,137 @@ class GroupVPNServer : XmlRpcService {
     byte[] cert_data = cert.X509.RawData;
     using(FileStream fs = File.Open(cacert_path, FileMode.Create)) {
       fs.Write(cert_data, 0, cert_data.Length);
+    }
+
+    return true;
+  }
+
+  [XmlRpcMethod]
+  public bool UpdateRevocationLists()
+  {
+    if(!Context.Request.IsLocal) {
+      throw new Exception("Call must be made locally!");
+    }
+
+    IDbConnection dbcon = new MySqlConnection(_connection_string);
+    dbcon.Open();
+    IDbCommand dbcmd = dbcon.CreateCommand();
+
+    // Get the group_id
+    string sql = "SELECT group_name FROM groupvpn";
+    dbcmd.CommandText = sql;
+    IDataReader reader = dbcmd.ExecuteReader();
+
+    ArrayList groups = new ArrayList();
+    while(reader.Read()) {
+      groups.Add(reader["group_name"] as string);
+    }
+
+    reader.Close();
+    dbcmd.Dispose();
+    dbcon.Close();
+
+    string exceptions = string.Empty;
+    foreach(string group_name in groups) {
+      try {
+        UpdateRevocationList(group_name);
+      } catch(Exception e) {
+        exceptions += e.Message + "\n";
+      }
+    }
+    
+    if(exceptions != string.Empty) {
+      throw new Exception(exceptions);
+    }
+
+    return true;
+  }
+
+  [XmlRpcMethod]
+  public bool UpdateRevocationList(string group_name)
+  {
+    if(!Context.Request.IsLocal) {
+      throw new Exception("Call must be made locally!");
+    }
+
+    IDbConnection dbcon = new MySqlConnection(_connection_string);
+    dbcon.Open();
+    IDbCommand dbcmd = dbcon.CreateCommand();
+
+    // Get the group_id
+    string sql = "SELECT group_id from groupvpn WHERE group_name = \"" + group_name + "\"";
+    dbcmd.CommandText = sql;
+    IDataReader reader = dbcmd.ExecuteReader();
+    if(!reader.Read()) {
+      throw new Exception("No such group.");
+    }
+
+    int group_id = (int) reader["group_id"];
+    reader.Close();
+
+    // get revoked users
+    sql = "SELECT user_id FROM groups WHERE group_id = \"" + group_id + "\" and revoked = 1";
+    dbcmd.CommandText = sql;
+    reader = dbcmd.ExecuteReader();
+
+    // add revoked users by user name to the revocation list
+    ArrayList revoked_user_ids = new ArrayList();
+    while(reader.Read()) {
+      revoked_user_ids.Add((int) reader["user_id"]);
+    }
+
+    reader.Close();
+
+    ArrayList revoked_users = new ArrayList();
+    foreach(int user_id in revoked_user_ids) {
+      sql = "SELECT username FROM " + _db_prefix + "users WHERE id = " + user_id;
+      dbcmd.CommandText = sql;
+      IDataReader user_reader = dbcmd.ExecuteReader();
+      if(!user_reader.Read()) {
+        continue;
+      }
+
+      revoked_users.Add(user_reader["username"]);
+      user_reader.Close();
+    }
+
+    reader.Close();
+    dbcmd.Dispose();
+    dbcon.Close();
+
+    // get private key
+    string private_path = GetGroupPrivatePath(group_name) + "private_key";
+    if(!File.Exists(private_path)) {
+      throw new Exception("No private key for " + private_path + " " + File.Exists(private_path));
+    }
+
+    RSACryptoServiceProvider private_key = new RSACryptoServiceProvider();
+    using(FileStream fs = File.Open(private_path, FileMode.Open)) {
+      byte[] blob = new byte[fs.Length];
+      fs.Read(blob, 0, blob.Length);
+      private_key.ImportCspBlob(blob);
+    }
+
+    // create revocation list
+    byte[] to_sign = null;
+    using(MemoryStream ms = new MemoryStream()) {
+      NumberSerializer.WriteLong(DateTime.UtcNow.Ticks, ms);
+      AdrConverter.Serialize(revoked_users, ms);
+      to_sign = ms.ToArray();
+    }
+
+    // sign revocation list
+    SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider();
+    byte[] hash = sha1.ComputeHash(to_sign);
+    byte[] signature = private_key.SignHash(hash, CryptoConfig.MapNameToOID("SHA1"));
+    byte[] data = new byte[4 + to_sign.Length + signature.Length];
+    NumberSerializer.WriteInt(to_sign.Length, data, 0);
+    to_sign.CopyTo(data, 4);
+    signature.CopyTo(data, 4 + to_sign.Length);
+
+    // write revocation list
+    using(FileStream fs = File.Open(GetGroupDataPath(group_name) + "revocation_list", FileMode.Create)) {
+      fs.Write(data, 0, data.Length);
     }
 
     return true;
