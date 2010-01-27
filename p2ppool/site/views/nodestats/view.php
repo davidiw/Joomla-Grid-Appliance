@@ -4,7 +4,7 @@ jimport('joomla.application.component.view');
 class P2PPoolViewNodeStats extends JView {
   function display($tpl = null) {
     $document =& JFactory::getDocument();
-    $document->addScript("includes/js/mootools.js");
+    $document->addScript("media/system/js/mootools.js");
     $document->addScript("components/com_p2ppool/scripts/javascript/sorttable.js");
 
     $this->assignRef('management', $management);
