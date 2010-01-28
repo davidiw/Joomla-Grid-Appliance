@@ -28,6 +28,18 @@ function addGroup(group, task) {
 
   form.submit();
 }
+
+function toggleView() {
+  var eles = document.getElementsByName("oldgroup");
+  for(i = 0; i < eles.length; i++) {
+    var ele = eles[i];
+    if(ele.style.display) {
+      ele.style.display = "";
+    } else {
+      ele.style.display = "none";
+    }
+  }
+}
 </script>
 
 <style type="text/css">
@@ -43,6 +55,8 @@ table.sortable thead {
 <input type="hidden" name="option" value="com_groupvpn" />
 
 <?php if($this->groups) { ?>
+
+Older groups are hidden, <a onclick="toggleView()">click here</a> to toggle this behavior.
 <table border=1 class="sortable">
   <tr>
     <th>Group</th>
@@ -93,12 +107,15 @@ if(!$noleave) {?>
   }
 }
 
+// One month is the oldest we want to see...
+$oldest_date = time() - (60*60*24*30);
+
 foreach($this->groups as $group) {
   if($this->my_groups[$group->group_id]) {
     continue;
   }
 ?>
-  <tr>
+  <tr <?php if(strtotime($group->last_update) < $oldest_date) {?> name="oldgroup" style="display:none" <?php }?>>
     <td>
       <a href="index.php?option=com_groupvpn&task=viewHandler&view=group&group_id=<?php echo $group->group_id; ?>"><?php
         echo $group->group_name; ?></a>
