@@ -85,11 +85,21 @@ function SetP2PPool() {
       </tr>
       <tr>
         <td>Base IP address:</td>
-        <td><input type="text" name="base_address" value="<?php echo $this->dhcp->BaseIP; ?>" /></td>
+        <td><input type="text" name="base_address" value="<?php
+            if($this->dhcp->BaseIP) {
+              echo $this->dhcp->BaseIP;
+            } else {
+              echo "5.0.0.0";
+            }?>" /></td>
       </tr>
       <tr>
         <td>IP Netmask:</td>
-        <td><input type="text" name="netmask" value="<?php echo $this->dhcp->Netmask; ?>" /></td>
+        <td><input type="text" name="netmask" value="<?php
+            if($this->dhcp->Netmask) {
+              echo $this->dhcp->Netmask;
+            } else {
+              echo "255.0.0.0";
+            }?>" /></td>
       </tr>
       <tr>
         <td>End to End Security:</td>
