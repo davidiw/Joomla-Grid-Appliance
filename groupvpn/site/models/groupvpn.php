@@ -265,26 +265,29 @@ class GroupVPNModelGroupVPN extends JModel {
       }
     }
 
-    $node->Security = "true";
+    if($ipop->EndToEndSecurity == "true") {
+      $node->Security = "true";
 
-    $ipop->GroupVPN = new stdClass();
-    $ipop->GroupVPN->ServerURI = "https://".JURI::getInstance()->toString(array("host", "port")).
-      "/components/com_groupvpn/mono/GroupVPN.rem";
-    $ipop->GroupVPN->Group = $groupvpn->group_name;
+      $ipop->GroupVPN = new stdClass();
+      $ipop->GroupVPN->ServerURI = "https://".JURI::getInstance()->toString(array("host", "port")).
+        "/components/com_groupvpn/mono/GroupVPN.rem";
+      $ipop->GroupVPN->Group = $groupvpn->group_name;
 
-    $ipop->GroupVPN->UserName = $user->username;
+      $ipop->GroupVPN->UserName = $user->username;
 
-    $db = & JFactory::getDBO();
-    $query = "SELECT secret FROM groups WHERE user_id = ".$user->id." and group_id = ".$groupvpn->group_id;
-    $db->setQuery($query);
-    $ipop->GroupVPN->Secret = $db->loadResult();
-    $ipop->EndToEndSecurity = "true";
+      $db = & JFactory::getDBO();
+      $query = "SELECT secret FROM groups WHERE user_id = ".$user->id." and group_id = ".$groupvpn->group_id;
+      $db->setQuery($query);
+      $ipop->GroupVPN->Secret = $db->loadResult();
+    } else {
+      $node->Security = "false";
+    }
 
     require_once(JPATH_SITE.DS."components".DS."com_groupvpn".DS."lib".DS."config_generator.php");
     $nodeconfig = P2PConfigGenerator::generateNodeConfig($node);
     $ipopconfig = P2PConfigGenerator::generateIPOPConfig($ipop);
     $dhcpconfig = P2PConfigGenerator::generateDHCPConfig($dhcp);
-    $node->Security = null;
+    $node->Security = false;
     $bootstrapconfig = P2PConfigGenerator::generateNodeConfig($node);
 
     return array($nodeconfig, $ipopconfig, $dhcpconfig, $bootstrapconfig);

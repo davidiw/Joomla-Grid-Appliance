@@ -21,6 +21,7 @@ class P2PConfigGenerator {
 
     $params->RemoteTAs = array();
     $params->DevicesToBind = array();
+    $params->Security = "false";
     $params->SecureEdges = "false";
     $params->KeyPath = "private_key";
     $params->CertificatePath = "certificates";
@@ -115,7 +116,7 @@ class P2PConfigGenerator {
     }
 
 
-    if($params->Security) {
+    if($params->Security == "true") {
       $sec = $doc->createElement("Security");
 
       $ele = $doc->createElement("Enabled");
