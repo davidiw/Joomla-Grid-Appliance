@@ -76,8 +76,6 @@ class GroupVPNController extends JController
     $model =& $this->getModel("GroupVPN");
     $group_id = $model->storeGroup();
     if(!$group_id) {
-      echo "HERE";
-      exit;
       $this->setRedirect($this->linkbase);
       return;
     }

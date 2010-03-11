@@ -2,14 +2,13 @@
 <!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/component-install.dtd">
 <install type="component" version="1.5.0">
   <name>GroupVPN</name>
-  <!-- The following elements are optional and free of formatting conttraints -->
-  <creationDate>2009 06 05</creationDate>
+  <creationDate>2010 03 10</creationDate>
   <author>David Wolinsky</author>
   <authorEmail>davidiw@ufl.edu</authorEmail>
   <authorUrl>http://www.grid-appliance.org</authorUrl>
   <copyright>2009</copyright>
   <license>GPLv2</license>
-  <version>.01</version>
+  <version>.02</version>
   <description>Groups and GroupVPN support for Joomla</description>
 
   <files folder="site">

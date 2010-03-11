@@ -252,9 +252,14 @@ class GroupVPNModelGroupVPN extends JModel {
       $pool = $pool_model->getPool();
       $node->Namespace = $pool->namespace;
 
-      $nodes = $pool_model->getNodes();
-      $node->RemoteTAs = array();
+      $nodes = $pool_model->getOnlineNodes();
+      if(count($nodes) > 200) {
+        $nodes = array_slice($nodes, 0, 200);
+      } else {
+        $nodes = $pool_model->getNodes();
+      }
 
+      $node->RemoteTAs = array();
       foreach($nodes as $lnode) {
         if($pool->tcpport) {
           $node->RemoteTAs[] = "brunet.tcp://".$lnode.":".$pool->tcpport;
