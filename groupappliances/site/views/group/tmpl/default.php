@@ -107,10 +107,6 @@ if(!$member->revoked and !$member->member and !$member->admin and $member->reque
     <option value="Server">Server</option>
 <?php } ?>
   </select>
-  <select name="arch">
-    <option value="x86">x86-32</option>
-    <option value="x64">x86-64</option>
-  </select>
   <input type="hidden" name="ga_id" value="<?php echo $this->group->ga_id; ?>" />
   <input type="hidden" name="group_id" value="<?php echo $this->group->group_id; ?>" />
   <input type="hidden" name="option" value="com_groupappliances" />

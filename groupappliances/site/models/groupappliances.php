@@ -458,7 +458,7 @@ class GroupAppliancesModelGroupAppliances extends JModel {
 
     $groupvpn_path = JPATH_SITE.DS."components".DS."com_groupvpn".DS;
     // Start creating the floppy
-    exec("/usr/local/bin/ext2fuse ".$image." ".$floppy." &> /dev/null &");
+    exec("fusefat -o rw+ ".$image." ".$floppy." &> /dev/null");
     // Done with groupvpn
     JFile::move($zipfile, $floppy.DS."groupvpn.zip");
     // Prep the user config
@@ -469,16 +469,8 @@ class GroupAppliancesModelGroupAppliances extends JModel {
       "UPDATE_URL=http://www.grid-appliance.org/files/grid_appliance/updates";
     JFile::write($floppy.DS."group_appliance.config", $config);
 
-    if(JRequest::getVar("arch") == "x64") {
-      exec("sed -i 's/initramfs/initramfs-x64/' ".$floppy.DS."grub".DS."menu.lst");
-      exec("sed -i 's/2\.6\.25\.3/2\.6\.25\.3-x64/' ".$floppy.DS."grub".DS."menu.lst");
-    }
-
     exec("chown -R root:root ".$floppy);
     exec("fusermount -u ".$floppy);
-    // Wait for the ext2fuse to end so we don't corrupt files!
-    exec("fg");
-    exec("sleep 1");
     exec("zip -jr9 ".$archive." ".$image);
     require_once(JPATH_SITE.DS."components".DS."com_groupvpn".DS."lib".DS."utils.php");
     Utils::transferFile($archive, "floppy.zip");
