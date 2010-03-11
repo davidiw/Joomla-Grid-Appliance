@@ -26,10 +26,11 @@ class Preparer:
     
   def build(self):
     """  Extracts files, optionally mkbundles, adds config, and then creates install.tgz. """
+    os.system("rm -rf " + self.tmp)
     os.system("mkdir -p " + self.inpath)
     os.system("mkdir " + self.outpath)
     os.chdir(self.tmp)
-    os.system("unzip -o -d " + self.inpath + " " + self.input + " &> /dev/null")
+    os.system("unzip -o -d " + self.inpath + " " + self.input)
     if(self.mkbundle):
       self.prepare_mkbundle()
     else:
@@ -51,14 +52,12 @@ class Preparer:
       files = i[2]
       for file in files:
         if file.endswith(".dll"):
-          dlls += file + " "
-    mkbundle_app = "basicnode"
-    app = "BasicNode.exe "
-    if os.path.exists("P2PNode.exe"):
-      mkbundle_app = "p2pnode"
-      app = "P2PNode.exe "
+          dlls += self.inpath + file + " "
 
-    os.system("mkbundle2 -o " + mkbundle_app + " --deps --config-dir . --static -z " + app + dlls)
+    mkbundle_app = "p2pnode"
+    app = self.inpath + "P2PNode.exe "
+
+    os.system("MONO_OPTIONS=--runtime=v2.0.50215 mkbundle2 -o " + mkbundle_app + " --deps --config-dir . --static -z " + app + dlls)
     shutil.copy(self.inpath + mkbundle_app, self.outpath + mkbundle_app)
 
 if __name__ == '__main__':

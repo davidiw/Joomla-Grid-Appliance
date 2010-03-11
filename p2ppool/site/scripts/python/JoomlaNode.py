@@ -1,15 +1,15 @@
 #!/usr/bin/python
 import MySQLdb, os, sys, JoomlaDB, shutil, subprocess, signal, time
 """
-This starts, stops, and checks the locally running BasicNode instance.
+This starts, stops, and checks the locally running Node instance.
 """
 
 def main(pool):
   jdb = JoomlaDB.JoomlaDB()
-  bn = JoomlaBasicNode(pool, jdb)
+  bn = JoomlaNode(pool, jdb)
   bn.start()
 
-class JoomlaBasicNode:
+class JoomlaNode:
   def __init__(self, pool, jdb):
     self.pool = pool
     self.jdb = jdb
@@ -36,10 +36,8 @@ class JoomlaBasicNode:
     os.system("mkdir -p " + self.node_path)
     os.system("unzip -o -d " + self.node_path + " " + self.input + " &> /dev/null")
     shutil.copy(self.base_path + "node.config", self.node_path + "node.config")
-
-    app = "BasicNode.exe "
-    if os.path.exists(self.node_path + "P2PNode.exe"):
-      app = "P2PNode.exe -n "
+    os.chdir(self.node_path)
+    app = "P2PNode.exe -n "
 
     args = "/usr/bin/mono " + self.node_path + app + self.node_path + \
         "node.config &> " + self.node_path + "out &"

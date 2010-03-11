@@ -82,7 +82,7 @@ function start()
     exit -1
   fi
 
-  $path/start_node.sh 0<&- 1>&- 2>&-
+  bash $path/start_node.sh < /dev/null > /dev/null 2> /dev/null
 }
 
 function stop()

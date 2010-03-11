@@ -340,6 +340,20 @@ class P2PPoolModelPool extends JModel {
   function findBadNodes($start = NULL, $end = NULL) {
   }
 
+  function getOnlineNodes() {
+    if(empty($this->pool)) {
+      $this->loadDefaultPool();
+    }
+
+    $db = & JFactory::getDBO();
+    $pp = $this->pool->pool;
+    $query = "SELECT ip FROM ".$pp."_stats ".
+      "WHERE count = (SELECT MAX(count) FROM ".$pp."_count) ".
+      "AND ip IN (SELECT ip FROM ".$pp."_pool)";
+    $db->setQuery($query);
+    return $db->loadResultArray();
+  }
+
   function getNodes() {
     if(empty($this->pool)) {
       $this->loadDefaultPool();

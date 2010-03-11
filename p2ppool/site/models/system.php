@@ -47,7 +47,7 @@ class P2PPoolModelSystem extends JModel {
   // Execute a task
   function runAction($action) {
     $path = JPATH_COMPONENT.DS."data".DS.$this->pool->pool;
-    $task = $this->app." ".$action." ".$this->pool->pool." True &> ".  $path.DS."setup.log";
+    $task = $this->app." ".$action." ".$this->pool->pool;
     system($task);
   }
 

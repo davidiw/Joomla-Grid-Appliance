@@ -6,18 +6,30 @@ Supported tasks:
   install, check, uninstall, get_logs, prepare, suspend
 """
 
-import MySQLdb, Remoter, sys, types, os, JoomlaPrepare, JoomlaDB, JoomlaBasicNode, JoomlaCrawl, time
+import MySQLdb, Remoter, sys, types, os, JoomlaPrepare, JoomlaDB, JoomlaNode, JoomlaCrawl, time
 
-def main(task, pool, fork = False):
-  if fork:
-    if os.fork() == 0:
-      app = "python"
-      pyapp = sys.path[0] + os.sep + "JoomlaInterface.py"
-      args = "%s %s %s %s" % (app, pyapp, task, pool)
-      os.execvp(app, args.split(' '))
-      pid = os.getpid()
-    else:
-      return True
+def main(task, pool):
+  if os.fork() > 0:
+    os._exit(0)
+  os.chdir("/")
+  os.setsid()
+  os.umask(0)
+
+  if os.fork() > 0:
+    os._exit(0)
+
+  sys.stdout.flush()
+  sys.stderr.flush()
+
+  path = sys.path[0] + os.sep + ".." + os.sep + ".." + os.sep \
+    + "data" + os.sep + pool + os.sep
+  si = file("/dev/null", 'r')
+  so = file(path + "setup.log", 'a+')
+  se = file(path + "setup.log", 'a+', 0)
+
+  os.dup2(si.fileno(), sys.stdin.fileno())
+  os.dup2(so.fileno(), sys.stdout.fileno())
+  os.dup2(se.fileno(), sys.stderr.fileno())
 
   jdb = JoomlaDB.JoomlaDB()
   if not jdb.lock(pool, task, os.getpid()):
@@ -30,7 +42,7 @@ def main(task, pool, fork = False):
       preparer = JoomlaPrepare.Preparer(pool, p2p.mkbundle)
       preparer.build()
 
-    bn = JoomlaBasicNode.JoomlaBasicNode(pool, jdb)
+    bn = JoomlaNode.JoomlaNode(pool, jdb)
     if task == "install" or task == "uninstall":
       bn.stop()
     if task != "prepare" and task != "uninstall":
@@ -115,8 +127,4 @@ class JoomlaRemoter:
 if __name__ == "__main__":
   task = sys.argv[1]
   pool = sys.argv[2]
-  fork = False
-  if len(sys.argv) > 3:
-    fork = sys.argv[3]
-
-  main(task, pool, fork)
+  main(task, pool)
