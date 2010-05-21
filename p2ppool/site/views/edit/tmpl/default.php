@@ -2,13 +2,27 @@
 defined('_JEXEC') or die('Restricted access');
 ?>
 
+<script type="text/javascript">
+function change(id) {
+  var box = document.getElementById(id);
+  var val_id = id.slice(0, id.length - 4);
+  var val = document.getElementById(val_id);
+  if(box.checked) {
+    val.value = 1;
+  } else {
+    val.value = 0;
+  }
+}
+</script>
+
 <?php if($this->pool->pool) { ?>
 You are in pool upgrading / editing mode.  Leaving the uploadable components blank
 will leave them as they are.
 <?php } ?>
 <form action="<?php echo JROUTE::_("index.php", true, true); ?>" enctype="multipart/form-data" method="post" id="form">
-  <input type="hidden" name="default_pool" value="0" />
-  <input type="hidden" name="mkbundle" value="0" />
+  <input type="hidden" name="default_pool" id="default_pool" value="<?php echo $this->pool->default_pool; ?>"/>
+  <input type="hidden" name="mkbundle" id="mkbundle" value="<?php echo $this->pool->mkbundle; ?>"/>
+  <input type="hidden" name="test" id="test" value="<?php echo $this->pool->test; ?>"/>
   <table>
     <tr>
       <td>Pool name:</td>
@@ -65,24 +79,24 @@ if($this->pool->install_path) {
     </tr>
     <tr>
       <td>Default pool</td>
-      <td><input type="checkbox" name="default_pool" value="1"
+      <td><input type="checkbox" id="default_pool.box" value="1"
 <?php if($this->pool->default_pool) { ?>
             checked="on"
-<?php } ?>/></td>
+<?php } ?> onchange="change(this.id)"/></td>
     </tr>
     <tr>
       <td>Use mkbundle</td>
-      <td><input type="checkbox" name="mkbundle" value="1"
+      <td><input type="checkbox" id="mkbundle.box" value="1"
 <?php if($this->pool->mkbundle) { ?>
             checked="on"
-<?php } ?>/></td>
+<?php } ?> onchange="change(this.id)"/></td>
     </tr>
     <tr>
       <td>Test system</td>
-      <td><input type="checkbox" name="test" value="1"
+      <td><input type="checkbox" id="test.box" value="1"
 <?php if($this->pool->test) { ?>
             checked="on"
-<?php } ?>/></td>
+<?php } ?> onchange="change(this.id)"/></td>
     </tr>
   </table>
   <input type="hidden" name="task" value="<?php echo $this->task; ?>" />
