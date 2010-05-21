@@ -32,7 +32,9 @@ class JoomlaCrawl:
     log.write("Starting...\n")
     log.close()
 
-    nodes = crawl.crawl(self.port, logger = self.output)
+    crawler = crawl.Crawler(self.port, self.output)
+    crawler.start()
+    nodes = crawler.nodes
 
     fields = ["ip" , "geo_loc", "type", "virtual_ip", "retries", "consistency", \
         "brunet_address", "tcp", "udp", "tunnel", "sas", "neighbor", "cons", "namespace"]
