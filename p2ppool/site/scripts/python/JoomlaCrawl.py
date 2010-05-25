@@ -58,7 +58,8 @@ class JoomlaCrawl:
         elif field == "brunet_address":
           val = ba.split(':')[2]
         elif field == "neighbor":
-          val = node['left'].split(':')[2]
+          vtmp = node['left'].split(':')
+          val = vtmp[2] if len(vtmp) > 2 else ""
         elif field in node:
           val = node[field]
         else:

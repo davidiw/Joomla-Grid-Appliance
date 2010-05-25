@@ -95,7 +95,7 @@ class Crawler:
         try:
           res["neighbors"] = self.rpc.proxy(node, 3, 1, "sys:link.GetNeighbors")[0]
         except:
-          pass
+          res["neighbors"] = {}
         res = [res]
       self.logger(str(res))
       (peers, info) = self.parse(res)
@@ -156,10 +156,10 @@ class Crawler:
       peers.append(v)
 
     info = {}
-    info['right'] = neighbors['right'] if neighbors['right'] else ''
-    info['right2'] = neighbors['right2'] if neighbors['right2'] else ''
-    info['left'] = neighbors['left'] if neighbors['left'] else ''
-    info['left2'] = neighbors['left2'] if neighbors['left2'] else ''
+    info['right'] = neighbors['right'] if 'right' in neighbors else ''
+    info['right2'] = neighbors['right2'] if 'right2' in neighbors else ''
+    info['left'] = neighbors['left'] if 'left' in neighbors else ''
+    info['left2'] = neighbors['left2'] if 'left2' in neighbors else ''
 
     if 'localips' in node_info:
       ip_list = node_info['localips']
@@ -206,19 +206,34 @@ class Crawler:
 
   def consistency(self):
     for addr in self.nodes:
-      node = self.nodes[addr]
-      cons = 0
+      con = self.consis(addr)
+      self.nodes[addr]['consistency'] = (con[0] + con[1] + con[2] + con[3]) / 4.0
 
-      if(node['right'] in self.nodes and self.nodes[node['right']]['left'] == addr):
-        cons += 1
-      if(node['left'] in self.nodes and self.nodes[node['left']]['right'] == addr):
-        cons += 1
-      if(node['right2'] in self.nodes and self.nodes[node['right2']]['left2'] == addr):
-        cons += 1
-      if(node['left2'] in self.nodes and self.nodes[node['left2']]['right2'] == addr):
-        cons += 1
+  def consis(self, addr):
+    node = self.nodes[addr]
 
-      node['consistency'] = cons / 4.0
+    lcon = 1 if('right' in node and \
+        node['right'] in self.nodes and \
+        'left' in self.nodes[node['right']] and \
+        self.nodes[node['right']]['left'] == addr) \
+        else 0
+    rcon = 1 if('left' in node and \
+        node['left'] in self.nodes and \
+        'right' in self.nodes[node['left']] and \
+        self.nodes[node['left']]['right'] == addr) \
+        else 0
+    lcon2 = 1 if('left2' in node and \
+        node['left2'] in self.nodes and \
+        'right2' in self.nodes[node['left2']] and \
+        self.nodes[node['left2']]['right2'] == addr) \
+        else 0
+    rcon2 = 1 if('right2' in node and \
+        node['right2'] in self.nodes and \
+        'left2' in self.nodes[node['right2']] and \
+        self.nodes[node['right2']]['left2'] == addr) \
+        else 0
+
+    return (lcon, rcon, lcon2, rcon2)
 
   def aggregate(self):
     count = 0
@@ -236,15 +251,11 @@ class Crawler:
     subring = 0
     for addr in self.nodes:
       count += 1
-      node = self.nodes[addr]
-      if(node['right'] in self.nodes and self.nodes[node['right']]['left'] == addr):
-        r1consistency += 1
-      if(node['left'] in self.nodes and self.nodes[node['left']]['right'] == addr):
-        l1consistency += 1
-      if(node['right2'] in self.nodes and self.nodes[node['right2']]['left2'] == addr):
-        r2consistency += 1
-      if(node['left2'] in self.nodes and self.nodes[node['left2']]['right2'] == addr):
-        l2consistency += 1
+      consis = self.consis(addr)
+      l1consistency += consis[0]
+      r1consistency += consis[1]
+      l2consistency += consis[2]
+      r2consistency += consis[3]
       sas += node['sas']
       cons += node['cons']
       wedges += node['wedges']
