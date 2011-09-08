@@ -54,7 +54,7 @@ class JoomlaCrawl:
       sval = ""
       for field in fields:
         if field == "ip":
-          val = node["ips"].split(",")[0]
+          val = node["ips"].split(",")[0] if 'ips' in node else ""
         elif field == "brunet_address":
           val = ba.split(':')[2]
         elif field == "neighbor":
