@@ -13,9 +13,11 @@ function check() {
       var ele = document.createElement("input");
       ele.type = "hidden";
       switch(action.value) {
+        case "crawl":
+        case "check":
+        case "gather_db":
         case "gather_logs":
         case "ps":
-        case "check":
           ele.name = "task";
           ele.value = "adminAction";
           form.appendChild(action);
@@ -74,49 +76,57 @@ function selectPool() {
     <tr>
       <td><input type="radio" name="action" value="nodestats" /></td>
       <td>Node Stats</td>
-    <tr>
+    </tr>
     <tr>
       <td><input type="radio" name="action" value="systemstats" /></td>
       <td>System Stats</td>
-    <tr>
+    </tr>
     <tr>
       <td><input type="radio" name="action" value="map" /></td>
       <td>Map</td>
-    <tr>
+    </tr>
     <tr>
       <td><input type="radio" name="action" value="files" /></td>
       <td>View data directory</td>
-    <tr>
+    </tr>
     <tr>
       <td><input type="radio" name="action" value="localstate" /></td>
       <td>Local state</td>
-    <tr>
+    </tr>
 <?php if($this->management) { ?>
     <tr><td style="horizontal-align:center">Management Tasks</td></tr>
     <tr>
       <td><input type="radio" name="action" value="create" /></td>
       <td>Create</td>
-    <tr>
+    </tr>
     <tr>
       <td><input type="radio" name="action" value="stop" /></td>
       <td>Stop</td>
-    <tr>
+    </tr>
     <tr>
       <td><input type="radio" name="action" value="upgrade" /></td>
       <td>Upgrade</td>
-    <tr>
-    <tr>
-      <td><input type="radio" name="action" value="gather_logs" /></td>
-      <td>Gather Logs</td>
-    <tr>
-    <tr>
-      <td><input type="radio" name="action" value="ps" /></td>
-      <td>Gather Memory</td>
-    <tr>
+    </tr>
     <tr>
       <td><input type="radio" name="action" value="check" /></td>
       <td>Check system</td>
+    </tr>
     <tr>
+      <td><input type="radio" name="action" value="crawl" /></td>
+      <td>Crawl</td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="action" value="gather_logs" /></td>
+      <td>Gather Logs</td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="action" value="gather_db" /></td>
+      <td>Gather test results</td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="action" value="ps" /></td>
+      <td>Gather Memory</td>
+    </tr>
 <?php } ?>
   </table></td>
 </tr></table>
