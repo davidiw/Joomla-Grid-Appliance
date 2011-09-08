@@ -70,7 +70,7 @@ class JoomlaCrawl:
         sval += str(val) + ", "
 
         if field in total_fields:
-          total_fields[field] = total_fields[field] + node[field]
+          total_fields[field] = total_fields[field] + node[field] if field in node else 0
       svar += "count"
       sval += count
       query = "INSERT INTO " + self.pool + "_stats (" + svar + ") VALUES (" + sval + ")"
@@ -88,6 +88,14 @@ class JoomlaCrawl:
     cursor.execute("COMMIT")
     cursor.close()
     db.close()
+
+    db = self.jdb.get_db()
+    cursor = db.cursor()
+    query = "SELECT * FROM " + self.pool + "_count WHERE count = " + str(count)
+    cursor.execute(query)
+    cursor.close()
+    db.close()
+
     self.output("Done...")
 
   def output(self, msg):
