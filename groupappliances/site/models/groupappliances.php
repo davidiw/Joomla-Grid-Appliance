@@ -465,8 +465,7 @@ class GroupAppliancesModelGroupAppliances extends JModel {
     $user =& JFactory::getUser();
     $config = "MACHINE_TYPE=".JRequest::getVar("floppy_type")."\n".
       "CONDOR_GROUP=\"".$group->group_name."\"\n".
-      "CONDOR_USER=\"".$user->username."\"\n".
-      "UPDATE_URL=http://www.grid-appliance.org/files/grid_appliance/updates";
+      "CONDOR_USER=\"".$user->username."\"";
     JFile::write($floppy.DS."group_appliance.config", $config);
 
     exec("chown -R root:root ".$floppy);
