@@ -26,7 +26,7 @@ class GroupAppliancesModelGroupAppliances extends JModel {
   function loadGroups() {
     $db = & JFactory::getDBO();
     $query = "SELECT ".$this->group_id.", ".$this->groups_db.".group_name, ".
-      $this->groups_db.".description, groupvpn.group_name as gn FROM ".
+      $this->groups_db.".description, groupvpn.group_name as gn, groupvpn.group_id FROM ".
       $this->groups_db." JOIN groupvpn on ".$this->groups_db.".group_id = ".
       "groupvpn.group_id";
     $db->setQuery($query);
