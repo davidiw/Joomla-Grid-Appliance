@@ -538,8 +538,22 @@ class GroupVPNModelGroupVPN extends JModel {
   // Helper functions
   // returns a group table if one exists
   function loadGroup() {
+    jimport('joomla.filesystem.file');
     $groupvpn =& $this->getTable("groupvpn");
     if($groupvpn->load(JRequest::getVar("group_id"))) {
+      if(!JFolder::exists(JPATH_SITE.DS."components".DS."com_groupvpn".DS."private".DS.$groupvpn->group_name)) {
+        $request = xmlrpc_encode_request("GenerateCACert", $groupvpn->group_name);
+        $context = stream_context_create(array('http' => array(
+            'method' => "POST",
+            'header' => "Content-Type: text/xml",
+            'content' => $request
+        )));
+        $file = file_get_contents("http://127.0.0.1/components/com_groupvpn/mono/GroupVPN.rem", false, $context);
+        $response = xmlrpc_decode($file);
+        if(xmlrpc_is_fault($response)) {
+          JError::raiseError(500, JText::_("xmlrpc: $response[faultString] ($response[faultCode])"));
+        }
+      }
       return $groupvpn;
     }
 
