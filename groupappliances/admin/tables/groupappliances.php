@@ -14,6 +14,18 @@ class TableGroupAppliances extends JTable {
     parent::__construct('groupappliances', 'ga_id', $db);
   }
 
+  function bind($from, $ignore = array()) {
+    if(!parent::bind($from, $ignore)) {
+      return false;
+    }
+    if(strlen($this->group_name) < 3) {
+      JError::raiseError(500, JText::_('Invalid group name, must be 3 or more characters'));
+    } elseif(0 < preg_match("/[^a-zA-Z0-9_\-\ ]/", $this->group_name)) {
+      JError::raiseError(500, JText::_('Invalid group name, must be a-z, A-Z, 0-9, _, -, " "'));
+    }
+    return true;
+  }
+
   function store($updateNulls = false) {
     if(!parent::store($updateNulls)) {
       return false;
