@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/component-install.dtd">
+<install type="component" version="1.5.0">
+  <name>GroupAppliances</name>
+  <creationDate>2010 03 11</creationDate>
+  <author>David Wolinsky</author>
+  <authorEmail>davidiw@ufl.edu</authorEmail>
+  <authorUrl>http://www.grid-appliance.org</authorUrl>
+  <copyright>2009</copyright>
+  <license>GPLv2</license>
+  <version>.02</version>
+  <description>Appliance Groups support for Joomla</description>
+
+  <files folder="site">
+    <filename>controller.php</filename>
+    <filename>views/groups/view.php</filename>
+    <filename>views/groups/tmpl/default.php</filename>
+    <filename>views/group/view.php</filename>
+    <filename>views/group/tmpl/default.php</filename>
+    <filename>models/groupappliances.php</filename>
+    <filename>data/empty_floppy</filename>
+    <filename>groupappliances.php</filename>
+  </files>
+
+  <install>
+    <sql>
+      <file charset="utf8" driver="mysql">install.sql</file>
+    </sql>
+  </install>
+
+  <uninstall>
+    <sql>
+      <file charset="utf8" driver="mysql">uninstall.sql</file>
+    </sql>
+  </uninstall>  
+
+  <administration>
+    <menu>GroupAppliances</menu>
+    <files folder="admin">
+      <filename>install.sql</filename>
+      <filename>tables/groupappliances.php</filename>
+      <filename>uninstall.sql</filename>
+    </files>    
+  </administration>
+</install>
