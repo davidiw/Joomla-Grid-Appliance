@@ -15,6 +15,26 @@ class TableGroupVPN extends JTable {
     parent::__construct('groupvpn', 'group_id', $db);
   }
 
+  function bind($from, $ignore = array()) {
+    if(!parent::bind($from, $ignore)) {
+      return false;
+    }
+
+    if(is_null($this->group_name) && !is_null($this->group_id)) {
+      $db = & JFactory::getDBO();
+      $query = "SELECT group_name FROM groupvpn WHERE group_id = ".$this->group_id;
+      $db->setQuery($query);
+      $this->group_name = $db->loadResult();
+    }
+
+    if(strlen($this->group_name) < 3) {
+      JError::raiseError(500, JText::_('Invalid group name, must be 3 or more characters'));
+    } elseif(0 < preg_match("/[^a-zA-Z0-9_\-\ ]/", $this->group_name)) {
+      JError::raiseError(500, JText::_('Invalid group name, must be a-z, A-Z, 0-9, _, -, " "'));
+    }
+    return true;
+  }
+
   function store($updateNulls = false) {
     if(!parent::store($updateNulls)) {
       return false;
