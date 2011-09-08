@@ -253,6 +253,23 @@ class P2PPoolModelPool extends JModel {
   }
 
   // Return the coordinates of all Nodes
+  function getNodeCoordinatesWithNamespaces() {
+    if(empty($this->pool)) {
+      $this->loadDefaultPool();
+    }
+
+    if(empty($this->count)) {
+      $this->loadModel();
+    }
+    $db = & JFactory::getDBO();
+    $query = "SELECT namespace, geo_loc FROM #pool_stats WHERE count = ".$this->count." and ".
+      "geo_loc != \"0.0000, 0.0000\" and geo_loc != \"\" and geo_loc != \",\"";
+    $query = str_replace("#pool", $this->pool->pool, $query);
+    $db->setQuery($query);
+    return $db->loadRowList();
+  }
+
+  // Return the coordinates of all Nodes
   function getNodeCoordinates() {
     if(empty($this->pool)) {
       $this->loadDefaultPool();
@@ -318,7 +335,7 @@ class P2PPoolModelPool extends JModel {
   // stat gathering incident specified by count or range.  If count and range
   // are used together, count refers to the end of the range.  So the result
   // will be all nodes from ($count - $range) to $count.
-  function getSystemStats($count = NULL, $range = 20) {
+  function getSystemStats($count = NULL, $range = 1000) {
     if(empty($count)) {
       $this->loadModel();
       $count = $this->count;

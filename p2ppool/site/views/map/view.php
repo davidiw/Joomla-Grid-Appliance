@@ -9,7 +9,7 @@ class P2PPoolViewMap extends JView {
 
     $model =& $this->getModel();
     $this->assign('description', $model->pool->description);
-    $this->assignRef('coordinates', $model->getNodeCoordinates());
+    $this->assignRef('coordinates', $model->getNodeCoordinatesWithNamespaces());
     $this->assign('node_count', $model->getNodeCount());
     $this->assign('consistency', $model->getConsistency());
     $this->assign('date', $model->getSnapshotTime());
