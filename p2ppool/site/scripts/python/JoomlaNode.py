@@ -34,7 +34,7 @@ class JoomlaNode:
     self.child = True
     os.system("rm -rf " + self.node_path)
     os.system("mkdir -p " + self.node_path)
-    os.system("unzip -o -d " + self.node_path + " " + self.input + " &> /dev/null")
+    os.system("unzip -o -d " + self.node_path + " " + self.input)
     shutil.copy(self.base_path + "node.config", self.node_path + "node.config")
     os.chdir(self.node_path)
     app = "P2PNode.exe -n "
