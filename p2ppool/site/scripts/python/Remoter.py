@@ -80,6 +80,10 @@ class Remoter:
       self.task = self.uninstall_node
     elif action == "gather_stats":
       self.task = self.get_stats
+    elif action == "gather_db":
+      self.task = self.gather_db
+      os.system("rm -rf dbs")
+      os.system("mkdir dbs")
     elif action == "gather_logs":
       self.task = self.gather_logs
       os.system("rm -rf logs")
@@ -164,6 +168,10 @@ class Remoter:
       os.system("rm -rf logs.zip")
       os.system("zip -r9 logs.zip logs")
       os.system("rm -rf logs")
+    elif self.action == "gather_db":
+      os.system("rm -rf dbs.zip")
+      os.system("zip -r9 dbs.zip dbs")
+      os.system("rm -rf dbs")
 
   def check_node(self, node):
     self.node_install(node, True)
@@ -225,6 +233,13 @@ class Remoter:
         self.update_callback(node, 1)
       else:
         self.logger(node + " failed!")
+
+  def gather_db(self, node):
+    cmd = "%s %s@%s:%s/node/*.db %s/dbs/. &> /dev/null" % \
+        (self.base_scp_cmd, self.username, node,  self.install_path, \
+        self.data_path)
+    os.system(cmd)
+    return
 
   def gather_logs(self, node):
     os.system("mkdir logs/" + node)
