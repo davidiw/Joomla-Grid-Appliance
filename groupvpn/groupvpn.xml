@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE install SYSTEM "http://dev.joomla.org/xml/1.5/component-install.dtd">
+<install type="component" version="1.5.0">
+  <name>GroupVPN</name>
+  <creationDate>2010 03 10</creationDate>
+  <author>David Wolinsky</author>
+  <authorEmail>davidiw@ufl.edu</authorEmail>
+  <authorUrl>http://www.grid-appliance.org</authorUrl>
+  <copyright>2009</copyright>
+  <license>GPLv2</license>
+  <version>.02</version>
+  <description>Groups and GroupVPN support for Joomla</description>
+
+  <files folder="site">
+    <filename>groupvpn.php</filename>
+    <filename>utils/certhelper.exe</filename>
+    <filename>utils/Brunet.Security.dll</filename>
+    <filename>utils/Boo.Lang.dll</filename>
+    <filename>utils/sign_cert.sh</filename>
+    <filename>utils/Mono.Security.dll</filename>
+    <filename>utils/create_ca.sh</filename>
+    <filename>utils/Brunet.dll</filename>
+    <filename>utils/RSAPrivateKeyToDER.exe</filename>
+    <filename>controller.php</filename>
+    <filename>mono/web.config</filename>
+    <filename>mono/GroupVPN.cs</filename>
+    <filename>mono/Update.cs</filename>
+    <filename>mono/bin/Reader.exe</filename>
+    <filename>mono/bin/Brunet.Security.dll</filename>
+    <filename>mono/bin/MySql.Data.dll</filename>
+    <filename>mono/bin/Update.sh</filename>
+    <filename>mono/bin/GroupVPN.exe</filename>
+    <filename>mono/bin/GroupVPN.dll</filename>
+    <filename>mono/bin/Brunet.dll</filename>
+    <filename>mono/bin/CookComputing.XmlRpcV2.dll</filename>
+    <filename>mono/bin/Update.exe</filename>
+    <filename>mono/Reader.cs</filename>
+    <filename>mono/compile.sh</filename>
+    <filename>private/.htaccess</filename>
+    <filename>lib/utils.php</filename>
+    <filename>lib/config_generator.php</filename>
+    <filename>models/groupvpn.php</filename>
+    <filename>views/group/tmpl/default.php</filename>
+    <filename>views/group/view.php</filename>
+    <filename>views/config/index.html</filename>
+    <filename>views/config/metadata.xml</filename>
+    <filename>views/config/tmpl/index.html</filename>
+    <filename>views/config/tmpl/default.php</filename>
+    <filename>views/config/view.php</filename>
+    <filename>views/groups/tmpl/default.php</filename>
+    <filename>views/groups/view.php</filename>
+    <filename>views/checkaccount/tmpl/default.php</filename>
+    <filename>views/checkaccount/view.php</filename>
+    <filename>views/account/tmpl/default.php</filename>
+    <filename>views/account/view.php</filename>
+  </files>
+
+  <install>
+    <sql>
+      <file charset="utf8" driver="mysql">install.sql</file>
+    </sql>
+  </install>
+
+  <uninstall>
+    <sql>
+      <file charset="utf8" driver="mysql">uninstall.sql</file>
+    </sql>
+  </uninstall>  
+
+  <administration>
+    <menu>GroupVPN</menu>
+    <files folder="admin">
+      <filename>install.sql</filename>
+      <filename>uninstall.sql</filename>
+      <filename>tables/groupvpn.php</filename>
+    </files>    
+  </administration>
+</install>
