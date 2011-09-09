@@ -466,6 +466,10 @@ class GroupAppliancesModelGroupAppliances extends JModel {
     $config = "MACHINE_TYPE=".JRequest::getVar("floppy_type")."\n".
       "CONDOR_GROUP=\"".$group->group_name."\"\n".
       "CONDOR_USER=\"".$user->username."\"";
+    $linux_password = $this->getLinuxPassword($user->username);
+    if(isset($linux_password)) {
+      $config .= "\nGA_PASSWORD='".$linux_password."'";
+    }
     JFile::write($floppy.DS."group_appliance.config", $config);
 
     exec("chown -R root:root ".$floppy);
@@ -485,5 +489,12 @@ class GroupAppliancesModelGroupAppliances extends JModel {
       'and '.$this->group_id.' = '.$group_id.')';
     $db->setQuery($query);
     return $db->loadResultArray();
+  }
+
+  function getLinuxPassword($username) {
+    $db =& JFactory::getDBO();
+    $query = "SELECT password FROM #__linux_passwords WHERE username=\"".$username."\"";
+    $db->setQuery($query);
+    return $db->loadResult();
   }
 }

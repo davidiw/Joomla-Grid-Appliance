@@ -2,6 +2,7 @@
 files="p2ppool
 groupappliances
 groupvpn
+linux_password
 "
 
 for file in $files; do
